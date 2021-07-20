@@ -32,7 +32,7 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 5. Remove contigs that are too short, too low coverage, or pure homopolymers
 6. Produce final FASTA with nicer names and parseable annotations
 
-_**NOTE: I would like feedback on are: methods for Nanopore error corrections, post assembly error correction, and pretty much anything else you think might be useful and worth considering.**_
+_**NOTE: Steps I would like feedback on are: methods for Nanopore error corrections, post assembly error correction, and pretty much anything else you think might be useful and worth considering.**_
 
 ## Quick Start
 ```
@@ -54,7 +54,7 @@ GCCAGGCAAATTCTGTTTTATCAGACCGCTTCTGCGTTCTGATTTAATCTGTATCAGGCT
 ```
 
 ## Installation
-**Placeholder for bioconda release**
+**Placeholder for eventual bioconda release**
 ```
 mamba create -n dragonflye -c conda-forge -c bioconda dragonflye
 ```
