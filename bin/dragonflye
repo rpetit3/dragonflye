@@ -1,0 +1,607 @@
+#!/usr/bin/env perl
+# mamaba -y create -n dragonflye -c conda-forge -c bioconda flye filtlong rasusa seqtk pigz perl perl-file-spec perl-findbin 'kmc>=3.1'
+#
+#
+use strict;
+use FindBin;
+use File::Path qw(make_path remove_tree);
+use File::Basename;
+use File::Spec;
+use File::Copy;
+use File::Temp;
+use List::Util qw(min max);
+use English qw(-no_match_vars);
+use Cwd qw(getcwd abs_path);
+use POSIX qw(strftime);
+
+# Globals
+my $EXE = basename($PROGRAM_NAME);
+my $VERSION = "0.0.1";
+my $AUTHOR = "Robert A Petit III";
+my $URL = "https://github.com/rpetit3/dragonflye";
+my $BAM = "$EXE.bam";
+my $APPDIR = abs_path( "$FindBin::RealBin/.." );
+my $LOGTMP = File::Temp->new();
+my $LOGFILE = $LOGTMP->filename;
+
+my $MIN_BQ = 3;
+my $MIN_RAM_GB = 2;           # for all tools
+
+my @CMDLINE = ($0, @ARGV);    # save this for printing to log later
+my $t0 = time;                # basetime to measure running duration
+
+my %ASSEMBLER = ( map { $_ => 1 } qw(flye miniasm raven) );
+
+my %VERSION = (
+  'pigz'     => 'pigz --version 2>&1',
+  'kmc'      => 'kmc -h 2>&1 | grep KMC',
+  'filtlong' => 'filtlong --version 2>&1',
+  'flye'     => 'flye --version 2>&1',
+  'rasusa'   => 'rasusa --version 2>&1',
+  'seqtk'    => 'seqtk 2>&1 | grep Version',
+);
+
+# Hardware stats
+my $CORES = num_cpus();
+my $MEMORY = avail_ram_gb();
+
+# Options
+my(@Options, $version,
+    $outdir, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
+    $kmers, $gsize, $READS, $assembler, $opts, $ram, $depth,
+    $nocorr, $nofilter, $nostitch, $noreadcorr,
+    $minreadlen, $minlen, $mincov, $seed);
+setOptions();
+
+# Say hello
+msg("Hello", $ENV{USER} || 'stranger');
+msg("You ran: @CMDLINE");
+msg("This is $EXE $VERSION");
+msg("Written by $AUTHOR");
+msg("Homepage is $URL");
+msg("Operating system is $OSNAME");
+msg("Perl version is $PERL_VERSION");
+msg("Machine has $CORES CPU cores and $MEMORY GB RAM");
+
+# Check options
+$outdir or err("Please specify output folder with --outdir");
+-r $READS or err("Can't read --reads $READS");
+$gsize = $gsize ? parse_genome_size($gsize) : 0;  # 0 = autodetect later
+$cpus ||= $CORES;  # if cpus==0 use all available
+$cpus > 0 or err("Invalid --cpus $cpus");
+$minreadlen >= 0 or err("Invalid --minreadlen $minreadlen");
+$minlen >= 0 or err("Invalid --minlen $minlen");
+(defined $mincov && $mincov >= 0) or err("Please provide a non-negative value for --mincov");
+$ram >= $MIN_RAM_GB or err("Invalid --ram $ram - need at least $MIN_RAM_GB");
+$ram <= $MEMORY or err("Set --ram to $ram but machine only has $MEMORY GB");
+my $ram_int = int($ram);  # an integer form of RAM, rounded down (some progs only accept integers)
+my $half_ram = int($ram / 2);
+$half_ram > 0 or err("Half RAM is too small, please set --ram > $ram");
+my $sort_cpus = max( 1, int(0.25 * $cpus) );  # for samtools sort in pipe
+$namefmt or err("Please provide a --namefmt for contig IDs");
+$namefmt =~ m/%\d+d/ or err("--namefmt must have a %d placeholder for the contig counter");
+exists $ASSEMBLER{$assembler} or err("Invalid --assembler '$assembler'");
+
+# Check deps
+check_deps();
+
+# Make output folder
+make_folder($outdir);
+$outdir = abs_path($outdir);
+$READS = abs_path($READS);
+
+# Ensure we have a tempdir
+$tmpdir ||= File::Temp->newdir(CLEANUP=>1);
+msg("Using tempdir: $tmpdir");
+
+msg("Changing into folder: $outdir");
+my $cwd = getcwd();
+chdir($outdir);
+
+# Switch to permanent logfile
+my $real_log = "$EXE.log";
+copy($LOGFILE, $real_log);
+$LOGFILE = $real_log;
+
+# Get some read stats
+msg("Collecting raw read statistics with 'seqtk'");
+my $stat = read_stats($READS);
+map { msg("Read stats: $_ = ".$stat->{$_}) } (keys %$stat);
+
+# Estimate genome size (or use genome size provided) using KMC
+unless ($gsize) {
+  my $kmer = 21;
+  my $minkc = 10;
+  msg("Estimating genome size by counting unqiue $kmer-mers > frequency $minkc");
+  my $tmpout = File::Temp->newdir();
+
+  # @@@ KMC @@@
+  run_cmd("kmc -sm -m$half_ram -t$cpus -k$kmer -ci$minkc \Q$READS\E $tmpout/kmc $tmpout", "kmc");
+  unlink <$tmpout/kmc.*>;
+  # No. of unique counted k-mers       :      2054586
+  my($bp) = grep { m/unique counted k/i } read_lines($LOGFILE);
+
+  # we use \S not \d here because it could be in scientific form for mash
+  $bp =~ m/(\S+)\s*$/ or err("Could not determine genome size from '$bp'");
+  $gsize = int($1);
+}
+msg("Using genome size $gsize bp");
+
+# Estimate sequencing depth
+my $orig_depth = int( $stat->{'total_bp'} / $gsize );
+msg("Estimated sequencing depth: ${orig_depth}x");
+
+# Optionally subsample the data to --depth, with rasusa
+if ($depth and $depth > 0 and $orig_depth > 1.1 * $depth) {
+  my $factor = sprintf "%.3f", $depth / $orig_depth;
+  msg("Subsampling reads from ${orig_depth}x to ${depth}x");
+  run_cmd("rasusa -i \Q$READS\E -c $depth -g $gsize -s $seed | pigz --fast -c -p $cpus > READS.sub.fq.gz", "rasusa");
+  $READS = "READS.sub.fq.gz";
+}
+else {
+  msg("No read depth reduction requested or necessary.");
+}
+
+# Filter reads by length
+if ($nofilter == 0) {
+  msg("Filter reads based on length and quality");
+  run_cmd("filtlong --min_length $minreadlen | pigz --fast -c -p $cpus > READS.fq.gz", "filtlong");
+}
+else {
+  run_cmd("ln -sf \Q$READS\E READS.fq.gz");
+}
+
+# Calculating read length distribution
+my $RLEN = $stat->{'avg_len'};
+msg("Average read length looks like $RLEN bp");
+unless ($minlen) {
+  $minlen = int( $RLEN / 2);
+  msg("Automatically setting --minlen to $minlen");
+}
+
+# Running the assembler engine of chouce
+msg("Assembling reads with '$assembler'");
+my $FINAL_READS = "READS.fq.gz";
+my $asm = "$assembler.fasta";  # assembler result file to process further
+my $asminfo = "";
+my $asmdir = $assembler;
+#remove_tree($asmdir) if -d $asmdir;
+
+if ($assembler eq 'flye') {
+  # https://github.com/fenderglass/Flye/blob/flye/docs/USAGE.md#-quick-usage
+  my $read_type = "--nano-raw";
+  run_cmd("flye $read_type $FINAL_READS -g $gsize --threads $cpus -o $asmdir $opts", "flye");
+  copy("$asmdir/assembly.fasta", $asm);
+  $asminfo = "$assembler-info.txt";
+  copy("$asmdir/assembly_info.txt", $asminfo);
+}
+else {
+  err("Invalid --assembler '$assembler'");
+}
+
+# Check for zero output or failed assembly
+err("Assembly failed - $asm has zero contigs!") unless -s $asm;
+
+# Write final answer with nicer names
+my $ncontigs = 0;
+my $nbases = 0;
+my $seq = read_fasta($asm, $asminfo);
+my $metadata = "sw=$EXE-$asmdir/$VERSION date=".strftime("%Y%m%d",localtime);
+my %len = map { ( $_ => length($seq->{$_}) ) } (keys %{$seq});
+for my $id (sort { $len{$b} <=> $len{$a} } keys %{$seq}) {
+  # flye  >contig_1 (details in flye/assembly_info.txt)
+  my $cov = $depth;
+  if ($assembler == "flye") {
+    my $info = read_info($asminfo, $assembler);
+    $cov = $info->{$id}->{'cov'};
+    $metadata .= " circular=" . $info->{$id}->{'circ'};
+  }
+
+  if ($len{$id} < $minlen) {
+    msg("Removing short contig (< $minlen bp): $id");
+    delete $seq->{$id};
+  }
+  elsif ($cov < $mincov) {
+    msg("Removing low coverage contig (< $mincov x): $id");
+    delete $seq->{$id};
+  }
+  elsif ($seq->{$id} =~  m/^(.)\1+$/) {
+    msg("Removing homopolymer-".$len{$id}."$1 contig: $id");
+    delete $seq->{$id};
+  }
+  else {
+    $ncontigs++;
+    my $len = $len{$id};
+    $nbases += $len;
+    $cov = sprintf "%.1f", $cov;
+    #my $corr = $changes->{$id} || 0;
+    my $corr = 0;
+    # $id =~ s/_pilon$// unless $nocorr;
+    my $newid = sprintf "$namefmt len=$len cov=$cov corr=$corr origname=$id $metadata", $ncontigs;
+    $seq->{$newid} = $seq->{$id};
+    delete $seq->{$id};
+  }
+}
+write_fasta("contigs.fa", $seq);
+my $delta = sprintf "%+.2f", (100.0*($nbases-$gsize)/$gsize);
+msg("Assembly is $nbases, estimated genome size was $gsize ($delta%)");
+
+my $graph = '';
+for my $f ('assembly_graph_with_scaffolds.gfa', 'assembly_graph.gfa', 'contigs.fastg', 'contigs.LastGraph') {
+  my $g = "$asmdir/$f";
+  if (-r $g) {
+    $g =~ m/\.(\w+)$/; # get file extension
+    $graph = "contigs.$1";
+    msg("Using genome graph file '$g' => '$graph'");
+    move($g, $graph);
+    last;
+  }
+}
+$graph or msg("Note: $assembler does not produce a graph file");
+
+# Cleanup time!
+unless ($keepfiles) {
+  # subsampled, filtered and symlinked original reads
+  unlink glob("*q.gz");
+  # assemblers
+  remove_tree( $asmdir );
+}
+
+# Say our goodbyes
+my $wallsecs = time - $t0;
+my($mins,$secs) = ( int($wallsecs/60), $wallsecs % 60 );
+msg("Walltime used: $mins min $secs sec");
+
+msg("Results in: $outdir");
+msg("Final assembly graph: $outdir/$graph") if $graph;
+msg("Final assembly contigs: $outdir/contigs.fa");
+msg("It contains $ncontigs (min=$minlen) contigs totalling $nbases bp.");
+
+# Inspiration
+my @motd = (
+  "Dragonflye is heavily based off Shovill (https://github.com/tseemann/shovill), the Illumina counterpart",
+  "Dragonfly facts were provided by the Smithsonian Magazine",
+  "Dragonfly fossils have been found with wingspans up to two feet (61cm)!",
+  "Dragonfly larva eat just about anything: tadpoles, mosquitoes, fish, other insect larvae and even each other! ",
+  "Dragonflies are super accurate hunters (>90%), hopefully it inspeires super accurate assemblies!",
+  "Remember, an assembly is just a _hypothesis_ of the original sequence! ~ Torsten Seemann",
+  "Use Bandage to inspect the .gfa/.fastg assembly graph: https://rrwick.github.io/Bandage/",
+  "Found a bug in $EXE? Post it at $URL/issues",
+  "Have a suggestion for $EXE? Tell me at $URL/issues",
+  "The $EXE manual is at $URL/blob/master/README.md",
+  "Did you know? $EXE is a play on the words 'Dragon' and 'Flye' ('dragonflye')",
+  "The name '$EXE' is pronounced as 'shovel' in English",
+  "If you know your genome size, use --gsize to skip the estimation step",
+);
+srand( $PROCESS_ID + $t0 ); # seed
+msg( $motd[ int(rand(scalar(@motd))) ] );
+msg("Done.");
+
+# return to original folder
+chdir($cwd);
+exit(0);
+
+#----------------------------------------------------------------------
+sub check_deps {
+  my($exit) = @_;
+  # Check we have the required binaries
+  my @exe = sort keys %VERSION;
+  #push @exe, ($OSNAME eq 'linux' ? 'vmstat' : 'sysctl');
+  for my $exe (@exe) {
+    my $fullexe = find_exe($exe);
+    if ($fullexe) {
+      my $ver = '(version unknown)';
+      if (my $vcmd = $VERSION{$exe}) {
+        ($ver) = qx($vcmd);
+        chomp $ver;
+        $ver or err("Could not determine version of '$exe' via '$vcmd'");
+      }
+      msg("Using $exe - $fullexe | $ver");
+    }
+    else {
+      err("Could not find '$exe' - please install it.");
+    }
+  }
+  exit(0) if $exit;
+}
+
+#----------------------------------------------------------------------
+sub count_changes {
+  my($fname) = @_;
+  my @diffs = read_lines($fname);
+  my $diff = {};
+  my $total=0;
+  foreach (@diffs) {
+    # NODE_2_length_262460_cov_10.3709:152516 NODE_2_length_262460_cov_10.3709_pilon:152516 A T
+    # we want the 2nd contig name
+    next unless m/ (\S+?):\d+(-\d+)? /;
+    $diff->{$1}++;
+    $total++;
+  }
+  msg("Repaired", scalar(keys %$diff), "contigs from $asm at $total positions.");
+  return $diff;
+}
+
+#----------------------------------------------------------------------
+sub read_stats {
+  my($READS) = @_;
+  my $sf = File::Temp->new();
+  my $stat;
+  # we use MIN_BQ to get an idea of what it would be after quality clipping
+  run_cmd("seqtk fqchk -q$MIN_BQ \Q$READS\E >".$sf->filename);
+  my @row = read_lines($sf->filename);
+  unlink $sf->filename;
+  for my $tag ('min_len', 'max_len', 'avg_len') {
+    $row[0] =~ m/$tag:\s*(\d+(\.\d+)?);/ or err("Can't parse $tag from: $row[0]");
+    $stat->{$tag} = int( $1 + 0.5 );
+  }
+  $row[2] =~ m/^ALL\s+(\d+)/ or err("Can't parse ALL #bases from: $row[2]");
+  $stat->{'total_bp'} = $1;
+  return $stat;
+}
+
+#----------------------------------------------------------------------
+sub make_folder {
+  my($outdir) = @_;
+  $outdir or err("make_folder() provided undefined path");
+  if (-d $outdir) {
+    if ($force) {
+      msg("Forced overwrite of existing --outdir $outdir");
+    }
+    else {
+      err("Folder '$outdir' already exists. Try using --force");
+    }
+  }
+  else {
+    make_path($outdir);
+  }
+}
+
+#----------------------------------------------------------------------
+sub parse_genome_size {
+  my($s) = @_;
+  my %mult = ('G'=>1E9,'M'=>1E6,'K'=>1E3);
+  $s =~ m/^([\d\.]+)([GMK])?$/i or die "Couldn't parse '$s'";
+  my $bp = $1;
+  $bp = $bp * $mult{uc($2)} if defined $2;
+  return $bp;
+}
+
+#----------------------------------------------------------------------
+sub run_cmd {
+  my($cmd, $label) = @_;
+
+  if (!defined $label) {
+    $cmd =~ m/^(\S+)/;
+    $label ||= $1;
+  }
+  $label = "[$label] " if defined $label and $label ne '';
+
+  $cmd .= " 2>&1 | sed 's/^/$label/' | tee -a $LOGFILE";
+  msg("Running: $cmd");
+  system($cmd)==0 or err("Error $? running command: $!");
+}
+
+#----------------------------------------------------------------------
+sub find_exe {
+  my($bin) = shift;
+  for my $dir (File::Spec->path) {
+    my $exe = File::Spec->catfile($dir, $bin);
+    return $exe if -x $exe;
+  }
+  return;
+}
+
+#----------------------------------------------------------------------
+sub msg {
+  my $msg = "[$EXE] @_\n";
+  print STDERR $msg;
+  open my $log, '>>', $LOGFILE;
+  print $log $msg;
+  close $log;
+}
+
+#----------------------------------------------------------------------
+sub err {
+  msg(@_);
+  exit(1);
+}
+
+#----------------------------------------------------------------------
+sub num_cpus {
+  my($num)= qx(getconf _NPROCESSORS_ONLN); # POSIX
+  chomp $num;
+  return $num || 1;
+}
+
+#----------------------------------------------------------------------
+sub avail_ram_gb {
+  my $ram=0;
+  if ($^O eq 'linux') {
+    my($line) = grep { m/^MemTotal/ } qx(cat /proc/meminfo);
+    $line =~ m/(\d+)/ or err("Could not parse MemTotal from /proc/meminfo");
+    $ram = $1 / 1024 / 1024; # convert KB to GB
+  }
+  elsif ($^O eq 'darwin') {    # macOS
+    my($line) = qx(sysctl hw.memsize);
+    $line =~ m/(\d+)/ or err("Could not parse RAM from sysctl hw.memsize");
+    $ram = $1 / 1024 / 1024 / 1024; # convert Bytes to GB
+  }
+  else {
+    err("Do not know how to determine RAM on platform:", $^O);
+  }
+  $ram && $ram > 0 or err("Problem determining available RAM");
+  return sprintf("%.2f", $ram);
+}
+
+#----------------------------------------------------------------------
+sub version {
+  print "$EXE $VERSION\n";
+  exit(0);
+}
+
+#----------------------------------------------------------------------
+sub read_fasta {
+  my($fname) = @_;
+  my $seq;
+  my $id;
+  # Bioperl is too heavyweight - that's my excuse for this
+  open my $FASTA, '<', $fname or err("Could not open $fname");
+  while (my $line = <$FASTA>) {
+    chomp $line;
+    if ($line =~ m/^>(.*)$/) {
+      $id = $1;
+      $id =~ s/\s/_/g;
+      $seq->{$id} = '';
+    }
+    else {
+      $seq->{$id} .= $line;
+    }
+  }
+  close $FASTA;
+  return $seq;
+}
+
+#----------------------------------------------------------------------
+sub read_info {
+  # Assembly info file, assembler name
+  my($fname, $aname) = @_;
+  my $info;
+  open my $INFO, '<', $fname or err("Could not open $fname");
+  while (my $line = <$INFO>) {
+    chomp $line;
+
+    # Read 'flye' assembly info
+    if ($aname eq "flye") {
+      # Colnames
+      # 0:seq_name, 1:length, 2:cov., 3:circ., 4:repeat, 5:mult., 6:alt_group, 7:graph_path
+      next if $line =~ /^\#/;
+      my @cols = split(/\s+/, $line);
+      $info->{$cols[0]} = {
+        'len' => $cols[1],
+        'cov' => $cols[2],
+        'circ' => $cols[3],
+        'repeat' => $cols[4],
+        'multi' => $cols[5],
+        'alt_group' => $cols[6],
+        'graph_path' => $cols[7]
+      }
+    }
+  }
+  close $INFO;
+  return $info;
+}
+
+#----------------------------------------------------------------------
+sub write_fasta {
+  my($fname, $seq) = @_;
+  open my $FASTA, '>', $fname or err("Could not write to $fname");
+  for my $id (sort { $a cmp $b } keys %{$seq}) {
+    print $FASTA ">$id\n";
+    # break contig in 60 characters per line
+    my @line = ($seq->{$id} =~ m/(.{1,60})/gs);
+    print $FASTA (map { $_."\n" } @line);
+  }
+  close $FASTA;
+}
+
+#----------------------------------------------------------------------
+sub read_lines {
+  my($fname) = @_;
+  open my $FILE, '<', $fname or err("Could not open $fname");
+  my @lines = <$FILE>;
+  close $FILE;
+  return @lines
+}
+
+#----------------------------------------------------------------------
+sub write_lines {
+  my($fname, @lines) = @_;
+  open my $FILE, '>', $fname or err("Could not write to $fname");
+  print $FILE @lines;
+  close $FILE;
+}
+
+#----------------------------------------------------------------------
+# Option setting routines
+
+sub setOptions {
+  use Getopt::Long;
+
+  @Options = (
+    "GENERAL",
+    {OPT=>"help",       VAR=>\&usage,                    DESC=>"This help"},
+    {OPT=>"version!",   VAR=>\&version,                  DESC=>"Print version and exit"},
+    {OPT=>"check!",     VAR=>\&check_deps,               DESC=>"Check dependencies are installed"},
+    {OPT=>"seed=i",     VAR=>\$seed,      DEFAULT=>42,   DESC=>"Random seed to use"},
+    "INPUT",
+    {OPT=>"reads=s",      VAR=>\$READS,         DEFAULT=>'',   DESC=>"Input Nanopore FASTQ"},
+    {OPT=>"depth=i",      VAR=>\$depth,      DEFAULT=>150,  DESC=>"Sub-sample --reads to this depth. Disable with --depth 0"},
+    {OPT=>"minreadlen=i", VAR=>\$minreadlen, DEFAULT=>1000, DESC=>"Minimum read length. Disable with --minreadlength 0"},
+    {OPT=>"gsize=s",      VAR=>\$gsize,      DEFAULT=>'',   DESC=>"Estimated genome size eg. 3.2M <blank=AUTODETECT>"},
+    "OUTPUT",
+    {OPT=>"outdir=s",   VAR=>\$outdir,    DEFAULT=>'',   DESC=>"Output folder"},
+    {OPT=>"force!",     VAR=>\$force,     DEFAULT=>0,    DESC=>"Force overwite of existing output folder"},
+    {OPT=>"minlen=i",   VAR=>\$minlen,    DEFAULT=>0,    DESC=>"Minimum contig length <0=AUTO>"},
+    {OPT=>"mincov=f",   VAR=>\$mincov,    DEFAULT=>2,    DESC=>"Minimum contig coverage <0=AUTO>"},
+    {OPT=>"namefmt=s",  VAR=>\$namefmt,   DEFAULT=>'contig%05d', DESC=>"Format of contig FASTA IDs in 'printf' style"},
+    {OPT=>"keepfiles!", VAR=>\$keepfiles, DEFAULT=>0,    DESC=>"Keep intermediate files"},
+    "RESOURCES",
+    {OPT=>"tmpdir=s",   VAR=>\$tmpdir,    DEFAULT=>$ENV{TMPDIR} || '', DESC=>"Fast temporary directory"},
+    {OPT=>"cpus=i",     VAR=>\$cpus,      DEFAULT=>$ENV{DRAGONFLYE_CPUS} || min(8,$CORES), DESC=>"Number of CPUs to use (0=ALL)"},
+    {OPT=>"ram=f",      VAR=>\$ram,       DEFAULT=>$ENV{DRAGONFLYE_RAM} || min(16,$MEMORY),  DESC=>"Try to keep RAM usage below this many GB"},
+    "ASSEMBLER",
+    {OPT=>"assembler=s",VAR=>\$assembler, DEFAULT=>$ENV{DRAGONFLYE_ASSEMBLER} || 'flye', DESC=>"Assembler: ".join(' ', keys %ASSEMBLER) },
+    {OPT=>"opts=s",     VAR=>\$opts,      DEFAULT=>'',   DESC=>"Extra assembler options in quotes eg. flye: '--interations'"},
+    {OPT=>"kmers=s",    VAR=>\$kmers,     DEFAULT=>'',   DESC=>"K-mers to use <blank=AUTO>"},
+    "MODULES",
+    {OPT=>"nofilter!",  VAR=>\$nofilter,  DEFAULT=>0,    DESC=>"Disable read length filtering"},
+    {OPT=>"nocorr!",    VAR=>\$nocorr,    DEFAULT=>0,    DESC=>"Disable post-assembly correction"},
+  );
+
+  ! @ARGV && usage(1);
+
+  &GetOptions(map {$_->{OPT}, $_->{VAR}} grep { ref } @Options) || usage(1);
+
+  # Now setup default values.
+  foreach (@Options) {
+    if (ref $_ && defined($_->{DEFAULT}) && !defined(${$_->{VAR}})) {
+      ${$_->{VAR}} = $_->{DEFAULT};
+    }
+  }
+}
+
+#----------------------------------------------------------------------
+sub usage {
+  my($exitcode) = @_;
+  $exitcode = 0 if $exitcode eq 'help'; # what gets passed by getopt func ref
+  $exitcode ||= 0;
+
+  select STDERR if $exitcode; # write to STDERR if exitcode is error
+
+  print "SYNOPSIS\n  De novo assembly pipeline for bacterial isolates with Nanopore reads\n";
+  print "USAGE\n  $EXE [options] --outdir DIR --reads READS.fastq.gz\n";
+  foreach (@Options) {
+    if (ref) {
+      my $def = $_->{DEFAULT};
+      if (defined $def) {
+        $def = 'OFF' if $_->{OPT} =~ m/!$/;
+        $def = "'$def'" if $_->{OPT} =~ m/=s$/;
+        $def = " (default: $def)";
+      }
+      $_->{OPT} =~ s/!$//;
+      $_->{OPT} =~ s/=s$/ XXX/;
+      $_->{OPT} =~ s/=i$/ N/;
+      $_->{OPT} =~ s/=f$/ n.nn/;
+      printf "  --%-13s %s%s\n", $_->{OPT}, $_->{DESC}, $def;
+    }
+    else {
+      print "$_\n"; # Subheadings in the help output
+    }
+  }
+  print "HOMEPAGE\n  $URL - $AUTHOR\n";
+
+  exit($exitcode);
+}
+
+#----------------------------------------------------------------------
