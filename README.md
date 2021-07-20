@@ -173,7 +173,7 @@ Filename | Description
 
 * _Doesn't Trycycler already do this?_
 
-  Dragonflye is not trying to replicate [Trycycler](https://github.com/rrwick/Trycycler), Trycycler is a on a whole 'nother level. If you are looking to get super high quality assemblies with some manual inspection steps inbetween, use Trycycler. But, if you are looking to just get a quick assembly that you can work with, that's what Dragonfly is for.
+  Dragonflye is not trying to replicate [Trycycler](https://github.com/rrwick/Trycycler), Trycycler is on a whole 'nother level. If you are looking to get super high quality assemblies with some manual inspection steps in between, use Trycycler. But, if you are looking to just get a quick assembly that you can work with, that's what Dragonfly is for.
 
 ## Feedback
 Please file questions, bugs or ideas to the [Issue Tracker](https://github.com/rpetit3/dragonflye/issues)
