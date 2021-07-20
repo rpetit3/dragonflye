@@ -3,7 +3,7 @@
 # dragonflye
 :dragon: :fly: Assemble bacterial isolate genomes from Nanopore reads
 
-*one day there will be supported fly emoji on GitHub!*
+*one day there will be support for the fly emoji on GitHub!*
 
 ## A Quick Note
 If you've worked with bacterial sequences, in all likelihood you have used one of Torsten Seemann's [tools](https://github.com/tseemann?tab=repositories). One such tool is [Shovill](https://github.com/tseemann/shovill), which takes the bacterial genome assembly process and makes it quick and painless. Shovill was developed for paired-end Illumina reads, and there is a fork, [shovill-se](https://github.com/rpetit3/shovill), which supports single-end reads.
