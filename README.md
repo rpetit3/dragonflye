@@ -31,7 +31,7 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 4. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm+Minipolish](https://github.com/rrwick/Minipolish), or [Raven](https://github.com/lbcb-sci/raven)
 5. Polish assembly with [Racon](https://github.com/isovic/racon) and/or [Medaka](https://github.com/nanoporetech/medaka)
 5. Remove contigs that are too short, too low coverage, or pure homopolymers
-6. Produce final FASTA with nicer names and parseable annotations
+6. Produce final FASTA with nicer names and parsable annotations
 7. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
 
 _**NOTE: Steps I would like feedback on are: methods for Nanopore error corrections, post assembly error correction, and pretty much anything else you think might be useful and worth considering.**_
