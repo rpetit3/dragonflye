@@ -206,7 +206,7 @@ De novo assembler for single molecule sequencing reads using repeat graphs
 _Kolmogorov, M., Yuan, J., Lin, Y, Pevzner, P., [Assembly of Long Error-Prone Reads Using Repeat Graphs](https://doi.org/10.1038/s41587-019-0072-8), Nature Biotechnology, (2019)_  
 
 * __[KMC](https://github.com/refresh-bio/KMC)__  
-Fast and frugal disk based k-mer counter
+Fast and frugal disk based k-mer counter  
 _Deorowicz, S., Kokot, M., Grabowski, Sz., Debudaj-Grabysz, A., [KMC 2: Fast and resource-frugal k-mer counting](https://doi.org/10.1093/bioinformatics/btv022), Bioinformatics, 2015; 31(10):1569–1576_  
 
 * __[Miniasm](https://github.com/lh3/miniasm)__  
@@ -218,7 +218,7 @@ A versatile pairwise aligner for genomic and spliced nucleotide sequences
 _Li, H. [Minimap2: pairwise alignment for nucleotide sequences.](https://doi.org/10.1093/bioinformatics/bty191) Bioinformatics, 34:3094-3100. (2018)_  
 
 * __[Minipolish](https://github.com/lbcb-sci/raven)__  
-A tool for Racon polishing of miniasm assemblies
+A tool for Racon polishing of miniasm assemblies  
 _Wick R.R., Holt K.E. [Benchmarking of long-read assemblers for prokaryote whole genome sequencing.](https://f1000research.com/articles/8-2138) F1000Research. ;8(2138). (2019)._ 
 
 * __[Pigz](https://zlib.net/pigz/)__  
@@ -230,7 +230,7 @@ Randomly subsample sequencing reads to a specified coverage
 _Hall, M.B. [Rasusa: Randomly subsample sequencing reads to a specified coverage.](https://doi.org/10.5281/zenodo.3731394) (2019)._  
 
 * __[Raven](https://github.com/lbcb-sci/raven)__  
-De novo genome assembler for long uncorrected reads
+De novo genome assembler for long uncorrected reads  
 _Vaser, R., Šikić, M. [Time- and memory-efficient genome assembly with Raven.](https://doi.org/10.1038/s43588-021-00073-4) Nat Comput Sci 1, 332–336 (2021)._  
 
 * __[Seqtk](https://github.com/lh3/seqtk)__  
