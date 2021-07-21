@@ -63,10 +63,22 @@ mamba create -n dragonflye -c conda-forge -c bioconda dragonflye
 
 Until the Bioconda release, this should work:
 ```
-mamaba -y create -n dragonflye -c conda-forge -c bioconda \
-    assembly-scan flye filtlong rasusa seqtk pigz perl \
-    perl-file-spec perl-findbin 'kmc>=3.1' minipolish \
-    miniasm any2fasta raven-assembler
+mamba -y create -n dragonflye -c conda-forge -c bioconda \
+    'assembly-scan>=0.4.0' \
+    any2fasta \
+    filtlong \
+    flye \
+    'kmc>=3.1' \
+    medaka \
+    miniasm \
+    perl \
+    perl-file-spec \
+    perl-findbin \
+    pigz \
+    racon \
+    rasusa \
+    raven-assembler \
+    seqtk
 conda activate dragonflye
 git clone git@github.com:rpetit3/dragonflye.git
 dragonflye/bin/dragonflye --help
