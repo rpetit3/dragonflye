@@ -225,6 +225,10 @@ _Wick R.R., Holt K.E. [Benchmarking of long-read assemblers for prokaryote whole
 A parallel implementation of gzip for modern multi-processor, multi-core machines.  
 _Adler, M. [pigz: A parallel implementation of gzip for modern multi-processor, multi-core machines.](https://zlib.net/pigz/) Jet Propulsion Laboratory (2015)._  
 
+* __[Racon](https://github.com/lbcb-sci/racon)__  
+Ultrafast consensus module for raw de novo genome assembly of long uncorrected reads  
+_R. Vaser, I. Sović, N. Nagarajan, M. Šikić, [Fast and accurate de novo genome assembly from long uncorrected reads.](http://dx.doi.org/10.1101/gr.214270.116) Genome Res. 27, 737–746 (2017)._  
+
 * __[Rasusa](https://github.com/mbhall88/rasusa)__  
 Randomly subsample sequencing reads to a specified coverage  
 _Hall, M.B. [Rasusa: Randomly subsample sequencing reads to a specified coverage.](https://doi.org/10.5281/zenodo.3731394) (2019)._  
