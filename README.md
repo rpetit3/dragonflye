@@ -62,7 +62,10 @@ mamba create -n dragonflye -c conda-forge -c bioconda dragonflye
 
 Until the Bioconda release, this should work:
 ```
-mamba -y create -n dragonflye -c conda-forge -c bioconda flye filtlong rasusa seqtk pigz perl perl-file-spec perl-findbin 'kmc>=3.1'
+mamaba -y create -n dragonflye -c conda-forge -c bioconda \
+    assembly-scan flye filtlong rasusa seqtk pigz perl \
+    perl-file-spec perl-findbin 'kmc>=3.1' minipolish \
+    miniasm any2fasta raven-assembler
 conda activate dragonflye
 git clone git@github.com:rpetit3/dragonflye.git
 dragonflye/bin/dragonflye --help
@@ -161,10 +164,12 @@ Variable | Option | Default
 Filename | Description
 ---------|------------
 `contigs.fa` | The final assembly you should use
-`contigs.gfa` | Assembly graph (flye)
+`contigs.gfa` | Assembly graph
 `dragonflye.log` | Full log file for bug reporting
 `flye.fasta` | Raw assembly (flye)
 `flye-info.txt` | Information about contigs output by Flye
+`miniasm_minipolish.fasta` | Raw assembly (miniasm+minipolish)
+`raven.fasta` | Raw assembly (raven)
 
 ## FAQ
 
