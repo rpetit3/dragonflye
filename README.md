@@ -21,16 +21,17 @@ And, honestly how could I not go with that?!? It's an amazing play-on-words that
 So to sum it up, thank you Torsten for Shovill and providing a framework for Dragonflye.
 
 ## Introduction
-Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quick and easy. Still working on the *quick* part, but I think the *easy* part is there. Dragonflye currently supports [Flye](https://github.com/fenderglass/Flye), but planning to support [Miniasm+Minipolish](https://github.com/rrwick/Minipolish) and [Raven](https://github.com/lbcb-sci/raven).
+Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quick and easy. Still working on the *quick* part, but I think the *easy* part is there. Dragonflye currently supports [Flye](https://github.com/fenderglass/Flye), [Miniasm+Minipolish](https://github.com/rrwick/Minipolish) and [Raven](https://github.com/lbcb-sci/raven).
 
 ## Main Steps
 
 1. Estimate genome size and read length from reads (unless --gsize provided) ([kmc](https://github.com/refresh-bio/KMC))
 2. Reduce FASTQ files to a sensible depth (default --depth 150) ([rasusa](https://github.com/mbhall88/rasusa))
 3. Filter reads by length (default --minreadlength 1000) ([filtlong](https://github.com/rrwick/Filtlong)
-4. Assemble with [Flye](https://github.com/fenderglass/Flye)
+4. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm+Minipolish](https://github.com/rrwick/Minipolish), or [Raven](https://github.com/lbcb-sci/raven)
 5. Remove contigs that are too short, too low coverage, or pure homopolymers
 6. Produce final FASTA with nicer names and parseable annotations
+7. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
 
 _**NOTE: Steps I would like feedback on are: methods for Nanopore error corrections, post assembly error correction, and pretty much anything else you think might be useful and worth considering.**_
 
