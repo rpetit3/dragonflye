@@ -27,7 +27,7 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 
 1. Estimate genome size and read length from reads (unless --gsize provided) ([kmc](https://github.com/refresh-bio/KMC))
 2. Reduce FASTQ files to a sensible depth (default --depth 150) ([rasusa](https://github.com/mbhall88/rasusa))
-3. Filter reads by length (default --minreadlength 1000) ([filtlong](https://github.com/rrwick/Filtlong)
+3. Filter reads by length (default --minreadlength 1000) ([filtlong](https://github.com/rrwick/Filtlong))
 4. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm+Minipolish](https://github.com/rrwick/Minipolish), or [Raven](https://github.com/lbcb-sci/raven)
 5. Remove contigs that are too short, too low coverage, or pure homopolymers
 6. Produce final FASTA with nicer names and parseable annotations
@@ -185,6 +185,58 @@ Filename | Description
 Please file questions, bugs or ideas to the [Issue Tracker](https://github.com/rpetit3/dragonflye/issues)
 
 ## Acknowledgements
+I would like to personally extend my many thanks and gratitude to the authors of these software packages. Really, thank you very much!
+
+### Software Included
+
+* __[any2fasta](https://github.com/tseemann/any2fasta)__  
+Convert various sequence formats to FASTA  
+_Seemann, T. [any2fasta: Convert various sequence formats to FASTA](https://github.com/tseemann/any2fasta)._  
+
+* __[assembly-scan](https://github.com/rpetit3/assembly-scan)__  
+Generate basic stats for an assembly.  
+_Petit III, R. A. [assembly-scan: generate basic stats for an assembly](https://github.com/rpetit3/assembly-scan)._  
+
+* __[Filtlong](https://github.com/rrwick/Filtlong)__  
+A tool for quality filtering tool for long reads.  
+_Wick, R. R. [Filtlong: quality filtering tool for long reads](https://github.com/rrwick/Filtlong)._  
+
+* __[Flye](https://github.com/fenderglass/Flye)__  
+De novo assembler for single molecule sequencing reads using repeat graphs  
+_Kolmogorov, M., Yuan, J., Lin, Y, Pevzner, P., [Assembly of Long Error-Prone Reads Using Repeat Graphs](https://doi.org/10.1038/s41587-019-0072-8), Nature Biotechnology, (2019)_  
+
+* __[KMC](https://github.com/refresh-bio/KMC)__  
+Fast and frugal disk based k-mer counter
+_Deorowicz, S., Kokot, M., Grabowski, Sz., Debudaj-Grabysz, A., [KMC 2: Fast and resource-frugal k-mer counting](https://doi.org/10.1093/bioinformatics/btv022), Bioinformatics, 2015; 31(10):1569–1576_  
+
+* __[Miniasm](https://github.com/lh3/miniasm)__  
+Ultrafast de novo assembly for long noisy reads (though having no consensus step)  
+_Li, H. [Miniasm: Ultrafast de novo assembly for long noisy reads](https://github.com/lh3/miniasm)_  
+
+* __[Minimap2](https://github.com/lh3/minimap2)__  
+A versatile pairwise aligner for genomic and spliced nucleotide sequences  
+_Li, H. [Minimap2: pairwise alignment for nucleotide sequences.](https://doi.org/10.1093/bioinformatics/bty191) Bioinformatics, 34:3094-3100. (2018)_  
+
+* __[Minipolish](https://github.com/lbcb-sci/raven)__  
+A tool for Racon polishing of miniasm assemblies
+_Wick R.R., Holt K.E. [Benchmarking of long-read assemblers for prokaryote whole genome sequencing.](https://f1000research.com/articles/8-2138) F1000Research. ;8(2138). (2019)._ 
+
+* __[Pigz](https://zlib.net/pigz/)__  
+A parallel implementation of gzip for modern multi-processor, multi-core machines.  
+_Adler, M. [pigz: A parallel implementation of gzip for modern multi-processor, multi-core machines.](https://zlib.net/pigz/) Jet Propulsion Laboratory (2015)._  
+
+* __[Rasusa](https://github.com/mbhall88/rasusa)__  
+Randomly subsample sequencing reads to a specified coverage  
+_Hall, M.B. [Rasusa: Randomly subsample sequencing reads to a specified coverage.](https://doi.org/10.5281/zenodo.3731394) (2019)._  
+
+* __[Raven](https://github.com/lbcb-sci/raven)__  
+De novo genome assembler for long uncorrected reads
+_Vaser, R., Šikić, M. [Time- and memory-efficient genome assembly with Raven.](https://doi.org/10.1038/s43588-021-00073-4) Nat Comput Sci 1, 332–336 (2021)._  
+
+* __[Seqtk](https://github.com/lh3/seqtk)__  
+A fast and lightweight tool for processing sequences in the FASTA or FASTQ format.  
+_Li, H. [Seqtk: Toolkit for processing sequences in FASTA/Q formats](https://github.com/lh3/seqtk)_  
+
 
 ## Author
 
