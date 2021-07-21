@@ -29,6 +29,7 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 2. Reduce FASTQ files to a sensible depth (default --depth 150) ([rasusa](https://github.com/mbhall88/rasusa))
 3. Filter reads by length (default --minreadlength 1000) ([filtlong](https://github.com/rrwick/Filtlong))
 4. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm+Minipolish](https://github.com/rrwick/Minipolish), or [Raven](https://github.com/lbcb-sci/raven)
+5. Polish assembly with [Racon](https://github.com/isovic/racon) and/or [Medaka](https://github.com/nanoporetech/medaka)
 5. Remove contigs that are too short, too low coverage, or pure homopolymers
 6. Produce final FASTA with nicer names and parseable annotations
 7. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
@@ -90,7 +91,7 @@ INPUT
 OUTPUT
   --outdir XXX    Output folder (default: '')
   --force         Force overwite of existing output folder (default: OFF)
-  --minlen N      Minimum contig length <0=AUTO> (default: 0)
+  --minlen N      Minimum contig length <0=AUTO> (default: 500)
   --mincov n.nn   Minimum contig coverage <0=AUTO> (default: 2)
   --namefmt XXX   Format of contig FASTA IDs in 'printf' style (default: 'contig%05d')
   --keepfiles     Keep intermediate files (default: OFF)
@@ -99,14 +100,18 @@ RESOURCES
   --cpus N        Number of CPUs to use (0=ALL) (default: 8)
   --ram n.nn      Try to keep RAM usage below this many GB (default: 16)
 ASSEMBLER
-  --assembler XXX Assembler: flye raven miniasm (default: 'flye')
+  --assembler XXX Assembler: raven miniasm flye (default: 'flye')
   --opts XXX      Extra assembler options in quotes eg. flye: '--interations' (default: '')
-  --kmers XXX     K-mers to use <blank=AUTO> (default: '')
+POLISHER
+  --racon N       Number of polishing rounds to conduct with Racon (default: 1)
+  --medaka N      Number of polishing rounds to conduct with Medaka (requires --model) (default: 0)
+  --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
+  --list_models   List the models available to Medaka (default: OFF)
 MODULES
   --nofilter      Disable read length filtering (default: OFF)
-  --nocorr        Disable post-assembly correction (default: OFF)
+  --nopolish      Disable assembly polishing (default: OFF)
 HOMEPAGE
-  https://github.com/rpetit3/dragonflye - Robert A Petit III
+  https://github.com/rpetit3/dragonflye - Robert A Petit II
 ```
 
 ### --depth
@@ -129,7 +134,7 @@ This will keep all the intermediate files in `--outdir` so you can explore and d
 By default it will attempt to use all available CPU cores.
 
 ### --ram
-Shovill will do its best to keep memory usage below this value, but it is not guaranteed.
+Dragonflye will do its best to keep memory usage below this value, but it is not guaranteed.
 If you are on a HPC cluster, you should make sure you tell your job submission engine
 a value higher than this.
 
@@ -140,6 +145,18 @@ By default it will use FlyeA.
 If you want to provide some assembler-specific parameters you can use the `--opts`
 parameter. Make sure you quote the parameters so they get passed as a single string
 eg. For `--assembler flye` you might use `--opts "--iterations 4 --plasmids"`.
+
+### --racon & --medaka
+These two parameters adjust how many polishing rounds are conducted per-polisher. For example,
+`--racon 2` would conduct 2 rounds of polishing with Racon. If `--medaka` is provided, a model
+must also be provided with `--model`.
+
+### --model
+A valid basecaller model must be provided with `--model`. If a valid model is provided, but
+`--medaka` was not provided it will assume `--medaka 1`.
+
+### --list_models
+This will list all basecaller models that are avialable in Medaka.
 
 ### Choosing which stages to use
 
@@ -209,6 +226,10 @@ _Kolmogorov, M., Yuan, J., Lin, Y, Pevzner, P., [Assembly of Long Error-Prone Re
 Fast and frugal disk based k-mer counter  
 _Deorowicz, S., Kokot, M., Grabowski, Sz., Debudaj-Grabysz, A., [KMC 2: Fast and resource-frugal k-mer counting](https://doi.org/10.1093/bioinformatics/btv022), Bioinformatics, 2015; 31(10):1569–1576_  
 
+* __[Medaka](https://github.com/nanoporetech/medaka)__  
+Sequence correction provided by ONT Research  
+_Li, H. [Medaka: Sequence correction provided by ONT Research](https://github.com/nanoporetech/medaka)_  
+
 * __[Miniasm](https://github.com/lh3/miniasm)__  
 Ultrafast de novo assembly for long noisy reads (though having no consensus step)  
 _Li, H. [Miniasm: Ultrafast de novo assembly for long noisy reads](https://github.com/lh3/miniasm)_  
@@ -216,10 +237,6 @@ _Li, H. [Miniasm: Ultrafast de novo assembly for long noisy reads](https://githu
 * __[Minimap2](https://github.com/lh3/minimap2)__  
 A versatile pairwise aligner for genomic and spliced nucleotide sequences  
 _Li, H. [Minimap2: pairwise alignment for nucleotide sequences.](https://doi.org/10.1093/bioinformatics/bty191) Bioinformatics, 34:3094-3100. (2018)_  
-
-* __[Minipolish](https://github.com/lbcb-sci/raven)__  
-A tool for Racon polishing of miniasm assemblies  
-_Wick R.R., Holt K.E. [Benchmarking of long-read assemblers for prokaryote whole genome sequencing.](https://f1000research.com/articles/8-2138) F1000Research. ;8(2138). (2019)._ 
 
 * __[Pigz](https://zlib.net/pigz/)__  
 A parallel implementation of gzip for modern multi-processor, multi-core machines.  

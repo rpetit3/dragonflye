@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
-# mamaba -y create -n dragonflye -c conda-forge -c bioconda flye filtlong rasusa seqtk \
+# mamba create -y -n dragonflye -c conda-forge -c bioconda flye filtlong rasusa seqtk \
 #                                                  pigz perl perl-file-spec perl-findbin \
-#                                                 'kmc>=3.1' minipolish miniasm any2fasta \
-#                                                 raven-assembler
+#                                                 'kmc>=3.1' miniasm any2fasta \
+#                                                 raven-assembler 'assembly-scan>=0.4' medaka
 #
 #
 use strict;
@@ -33,7 +33,7 @@ my $MIN_RAM_GB = 2;           # for all tools
 my @CMDLINE = ($0, @ARGV);    # save this for printing to log later
 my $t0 = time;                # basetime to measure running duration
 
-my %ASSEMBLER = ( map { $_ => 1 } qw(flye miniasm_minipolish raven) );
+my %ASSEMBLER = ( map { $_ => 1 } qw(flye miniasm raven) );
 
 my %VERSION = (
   'any2fasta'     => 'any2fasta -v 2>&1',
@@ -41,10 +41,11 @@ my %VERSION = (
   'filtlong'      => 'filtlong --version 2>&1',
   'flye'          => 'flye --version 2>&1',
   'kmc'           => 'kmc -h 2>&1 | grep KMC',
+  'medaka'        => 'medaka --version 2>&1',
   'miniasm'       => 'miniasm -V 2>&1',
   'minimap2'      => 'minimap2 --version 2>&1',
-  'minipolish'    => 'minipolish --version 2>&1',
   'pigz'          => 'pigz --version 2>&1',
+  'racon'         => 'racon --version 2>&1',
   'rasusa'        => 'rasusa --version 2>&1',
   'raven'         => 'raven --version 2>&1',
   'seqtk'         => 'seqtk 2>&1 | grep Version',
@@ -58,7 +59,7 @@ my $MEMORY = avail_ram_gb();
 my(@Options, $version,
     $outdir, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
     $kmers, $gsize, $READS, $assembler, $opts, $ram, $depth,
-    $nocorr, $nofilter, $nostitch, $noreadcorr,
+    $model, $list_models, $racon, $medaka, $nofilter, $nopolish,
     $minreadlen, $minlen, $mincov, $seed);
 setOptions();
 
@@ -73,6 +74,20 @@ msg("Perl version is $PERL_VERSION");
 msg("Machine has $CORES CPU cores and $MEMORY GB RAM");
 
 # Check options
+if ($list_models) {
+  available_models("");
+}
+elsif ($model) {
+  available_models($model);
+  if (!$medaka) {
+    msg("Valid model provided, but number of Medaka rounds (--medaka) not given, assuming 1 round");
+    $medaka = 1;
+  }
+} 
+elsif ($medaka && !$model) {
+  err("--medaka requires a model to be specified with --model");
+}
+
 $outdir or err("Please specify output folder with --outdir");
 -r $READS or err("Can't read --reads $READS");
 $gsize = $gsize ? parse_genome_size($gsize) : 0;  # 0 = autodetect later
@@ -80,6 +95,8 @@ $cpus ||= $CORES;  # if cpus==0 use all available
 $cpus > 0 or err("Invalid --cpus $cpus");
 $minreadlen >= 0 or err("Invalid --minreadlen $minreadlen");
 $minlen >= 0 or err("Invalid --minlen $minlen");
+$medaka >= 0 or err("Invalid --medaka $medaka");
+$racon >= 0 or err("Invalid --racon $racon");
 (defined $mincov && $mincov >= 0) or err("Please provide a non-negative value for --mincov");
 $ram >= $MIN_RAM_GB or err("Invalid --ram $ram - need at least $MIN_RAM_GB");
 $ram <= $MEMORY or err("Set --ram to $ram but machine only has $MEMORY GB");
@@ -153,7 +170,7 @@ else {
 }
 
 # Filter reads by length
-if ($nofilter == 0) {
+unless ($nofilter) {
   msg("Filter reads based on length and quality");
   run_cmd("filtlong --min_length $minreadlen $READS 2>&1 1> READS.fq", "filtlong");
   run_cmd("pigz -f -p $cpus --fast READS.fq 2>&1", "pigz");
@@ -174,32 +191,31 @@ unless ($minlen) {
 msg("Assembling reads with '$assembler'");
 my $FINAL_READS = "READS.fq.gz";
 my $asm = "$assembler.fasta";  # assembler result file to process further
-my $asminfo = "";
 my $asmdir = $assembler;
-#remove_tree($asmdir) if -d $asmdir;
+my $asminfo = "";
+remove_tree($asmdir) if -d $asmdir;
 
 if ($assembler eq 'flye') {
   # https://github.com/fenderglass/Flye/blob/flye/docs/USAGE.md#-quick-usage
   my $read_type = "--nano-raw";
-  run_cmd("flye $read_type $FINAL_READS -g $gsize --threads $cpus -o $asmdir $opts 2>&1", "flye");
+  # set polish rounds to 0 (-i 0)
+  run_cmd("flye $read_type $FINAL_READS -g $gsize -i 0 --threads $cpus -o $asmdir $opts 2>&1", "flye");
   copy("$asmdir/assembly.fasta", $asm);
   $asminfo = "$assembler-info.txt";
   copy("$asmdir/assembly_info.txt", $asminfo);
 }
-elsif ($assembler eq 'miniasm_minipolish') {
-  # https://github.com/rrwick/Minipolish/blob/main/miniasm_and_minipolish.sh
-  # not available on the bioconda releases, so replicate here
+elsif ($assembler eq 'miniasm') {
   make_folder($asmdir);
-  run_cmd("minimap2 -x ava-ont -t $cpus $FINAL_READS $FINAL_READS 2>&1 1> $asmdir/minimap2-overlaps.paf", "miniasm_minipolish - minimap2");
-  run_cmd("miniasm -f $FINAL_READS $asmdir/minimap2-overlaps.paf 2>&1 1> $asmdir/miniasm-unpolished.gfa", "miniasm_minipolish - miniasm");
-  run_cmd("minipolish --threads $cpus $FINAL_READS $asmdir/miniasm-unpolished.gfa 2>&1 1> $asmdir/assembly_graph.gfa", "miniasm_minipolish - minipolish");
-  run_cmd("any2fasta $asmdir/assembly_graph.gfa 2>&1 1> $asmdir/assembly.fasta", "miniasm_minipolish - any2fasta");
+  run_cmd("minimap2 -x ava-ont -t $cpus $FINAL_READS $FINAL_READS 2>&1 1> $asmdir/minimap2-overlaps.paf", "miniasm - minimap2");
+  run_cmd("miniasm -f $FINAL_READS $asmdir/minimap2-overlaps.paf 2>&1 1> $asmdir/assembly_graph.gfa", "miniasm - miniasm");
+  run_cmd("any2fasta $asmdir/assembly_graph.gfa 2>&1 1> $asmdir/assembly.fasta", "miniasm - any2fasta");
   copy("$asmdir/assembly.fasta", $asm);
   $asminfo = "$asmdir/assembly_graph.gfa";
 }
 elsif ($assembler eq 'raven') {
   make_folder($asmdir);
-  run_cmd("raven --threads $cpus --graphical-fragment-assembly $asmdir/assembly_graph.gfa $opts $FINAL_READS 2>&1 1> $asmdir/assembly.fasta", "raven");
+  # Set polish rounds to 0 (-p 0)
+  run_cmd("raven --threads $cpus -p 0 --graphical-fragment-assembly $asmdir/assembly_graph.gfa $opts $FINAL_READS 2>&1 1> $asmdir/assembly.fasta", "raven");
   msg("Contig coverage not available from Raven, skipping coverage check");
   copy("$asmdir/assembly.fasta", $asm);
 }
@@ -209,12 +225,60 @@ else {
 # Check for zero output or failed assembly
 err("Assembly failed - $asm has zero contigs!") unless -s $asm;
 
+my $polish_info = "";
+my $POLISHED_FASTA = $asm;
+my $has_polished = 0;
+unless ($nopolish) {
+  make_folder("$asmdir/polish");
+  if ($racon) {
+    # Polish with Racon
+    msg("Polishing with Racon ($racon rounds)");
+    make_folder("$asmdir/polish/racon");
+    for (my $i = 1; $i <= $racon; $i++) {
+      my $polish_dir = "$asmdir/polish/racon/$i";
+      make_folder($polish_dir);
+      run_cmd("minimap2 -t $cpus -x map-ont $POLISHED_FASTA $FINAL_READS 2>&1  1> $polish_dir/aligments.paf", "polishing - racon ($i of $racon)");
+      run_cmd("racon -t $cpus $FINAL_READS $polish_dir/aligments.paf $POLISHED_FASTA 2>&1 1> $polish_dir/consensus.fasta", "polishing - racon ($i of $racon)");
+      $POLISHED_FASTA = "$polish_dir/consensus.fasta";
+    }
+    $has_polished = 1;
+    $polish_info .= "racon:${racon}x;";
+  }
+
+  if ($medaka) {
+    # Polish with Medaka
+    msg("Polishing with Medaka ($medaka rounds)");
+    make_folder("$asmdir/polish/medaka");
+    for (my $i = 1; $i <= $medaka; $i++) {
+      my $polish_dir = "$asmdir/polish/medaka/$i";
+      run_cmd("medaka_consensus -i $FINAL_READS -d $POLISHED_FASTA -o $polish_dir -m $model -t $cpus 2>&1", "polishing - medaka ($i of $medaka)");
+      $POLISHED_FASTA = "$polish_dir/consensus.fasta";
+    }
+    $has_polished = 1;
+    $polish_info .= "medaka:${medaka}x;";
+  }
+
+  copy($POLISHED_FASTA, $asm);
+  if ($has_polished) {
+    $polish_info = "polish=$polish_info";
+  }
+  else {
+    $polish_info = "polish=none";
+  }
+}
+else {
+  $polish_info = "polish=none";
+  msg("User supplied --nopolish, so will not polish contigs.");
+}
+
 # Write final answer with nicer names
 my $ncontigs = 0;
 my $nbases = 0;
+msg("Using assembly file '$POLISHED_FASTA' => '$asm'");
 my $seq = read_fasta($asm);
 my $info = read_info($asminfo, $assembler);
-my $metadata = "sw=$EXE-$asmdir/$VERSION date=".strftime("%Y%m%d", localtime);
+my $metadata = "$polish_info sw=$EXE-$asmdir/$VERSION date=".strftime("%Y%m%d", localtime);
+
 my %len = map { ( $_ => length($seq->{$_}) ) } (keys %{$seq});
 for my $id (sort { $len{$b} <=> $len{$a} } keys %{$seq}) {
   my $cov = $depth;
@@ -222,7 +286,7 @@ for my $id (sort { $len{$b} <=> $len{$a} } keys %{$seq}) {
     $cov = $info->{$id}->{'cov'};
     $metadata .= " circular=" . $info->{$id}->{'circ'};
   }
-  elsif ($assembler eq "miniasm_minipolish") {
+  elsif ($assembler eq "miniasm") {
     $cov = $info->{$id}->{'cov'};
   }
   elsif ($assembler eq "raven") {
@@ -270,7 +334,10 @@ for my $f ('assembly_graph_with_scaffolds.gfa', 'assembly_graph.gfa', 'contigs.f
   my $g = "$asmdir/$f";
   if (-r $g) {
     $g =~ m/\.(\w+)$/; # get file extension
-    $graph = "contigs.$1";
+    $graph = "$assembler.$1";
+    if ($has_polished) {
+      $graph = "$assembler-unpolished.$1";
+    }
     msg("Using genome graph file '$g' => '$graph'");
     move($g, $graph);
     last;
@@ -303,14 +370,13 @@ my @motd = (
   "Dragonfly facts were provided by the Smithsonian Magazine",
   "Dragonfly fossils have been found with wingspans up to two feet (61cm)!",
   "Dragonfly larva eat just about anything: tadpoles, mosquitoes, fish, other insect larvae and even each other! ",
-  "Dragonflies are super accurate hunters (>90%), hopefully it inspeires super accurate assemblies!",
+  "Dragonflies are super accurate hunters (>90% capture rate), hopefully it inspires super accurate assemblies!",
   "Remember, an assembly is just a _hypothesis_ of the original sequence! ~ Torsten Seemann",
   "Use Bandage to inspect the .gfa/.fastg assembly graph: https://rrwick.github.io/Bandage/",
   "Found a bug in $EXE? Post it at $URL/issues",
   "Have a suggestion for $EXE? Tell me at $URL/issues",
   "The $EXE manual is at $URL/blob/master/README.md",
   "Did you know? $EXE is a play on the words 'Dragon' and 'Flye' ('dragonflye')",
-  "The name '$EXE' is pronounced as 'shovel' in English",
   "If you know your genome size, use --gsize to skip the estimation step",
 );
 srand( $PROCESS_ID + $t0 ); # seed
@@ -343,6 +409,50 @@ sub check_deps {
     }
   }
   exit(0) if $exit;
+}
+
+#----------------------------------------------------------------------
+sub available_models {
+  my($model, $exitcode) = @_;
+  my $model_verified = 0;
+  if ($model) {
+    msg("Verifying input model (--model): $model");
+  }
+  else {
+    msg("Generating a list of available Medaka models:");
+  }
+  my ($available) = qx(medaka_consensus -h 2>&1 | grep Available:);
+  chomp $available;
+  $available =~ s/\s+Available: //g;
+  $available =~ s/\.//g;
+  my @models = split(', ', $available);
+  foreach my $m (@models) {
+    if ($model) {
+      if ($model eq $m) {
+        $model_verified = 1;
+      }
+    }
+    else {
+      msg("\t$m");
+    }
+  }
+
+  if ($model) {
+    if ($model_verified) {
+      msg("Model $model verified!");
+    } 
+    else {
+      msg("Unable to verify model '$model', please check spelling and try again.");
+      msg("Available Medaka models include:");
+      foreach my $m (@models) {
+        msg("\t$m");
+      }
+      exit(1);
+    }
+  }
+  else {
+    exit(0)
+  }
 }
 
 #----------------------------------------------------------------------
@@ -527,7 +637,7 @@ sub read_info {
           'graph_path' => $cols[7]
         }
       }
-      elsif ($aname eq "miniasm_minipolish") {
+      elsif ($aname eq "miniasm") {
         # The coverage is in the assembly graph
         # cols
         # 0:info, 1:contig is, 2:sequence, 3:coverage
@@ -604,8 +714,14 @@ sub setOptions {
     "ASSEMBLER",
     {OPT=>"assembler=s",VAR=>\$assembler, DEFAULT=>$ENV{DRAGONFLYE_ASSEMBLER} || 'flye', DESC=>"Assembler: ".join(' ', keys %ASSEMBLER) },
     {OPT=>"opts=s",     VAR=>\$opts,      DEFAULT=>'',   DESC=>"Extra assembler options in quotes eg. flye: '--interations'"},
+    "POLISHER",
+    {OPT=>"racon=i",      VAR=>\$racon,       DEFAULT=>1,    DESC=>"Number of polishing rounds to conduct with Racon"},
+    {OPT=>"medaka=i",     VAR=>\$medaka,      DEFAULT=>0,    DESC=>"Number of polishing rounds to conduct with Medaka (requires --model)"},
+    {OPT=>"model=s",      VAR=>\$model,       DEFAULT=>'',   DESC=>"The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used)"},
+    {OPT=>"list_models!", VAR=>\$list_models, DEFAULT=>0,    DESC=>"List the models available to Medaka"},
     "MODULES",
-    {OPT=>"nofilter!",  VAR=>\$nofilter,  DEFAULT=>0,    DESC=>"Disable read length filtering"}
+    {OPT=>"nofilter!",  VAR=>\$nofilter,  DEFAULT=>0,    DESC=>"Disable read length filtering"},
+    {OPT=>"nopolish!",  VAR=>\$nopolish,  DEFAULT=>0,    DESC=>"Disable assembly polishing"}
   );
 
   ! @ARGV && usage(1);
