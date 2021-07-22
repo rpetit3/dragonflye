@@ -45,7 +45,6 @@ jobs:
           echo "Testing dragonflye"
           bin/dragonflye --version
           bin/dragonflye --help
-          bin/dragonflye
 
       - name: Test Flye Assembler
         run: |
