@@ -34,8 +34,6 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 6. Produce final FASTA with nicer names and parsable annotations
 7. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
 
-_**NOTE: Steps I would like feedback on are: methods for Nanopore error corrections, post assembly error correction, and pretty much anything else you think might be useful and worth considering.**_
-
 ## Quick Start
 ```
 dragonflye --reads my-ont.fastq.gz --outdir dragonflye --gsize 5000000
