@@ -1,4 +1,4 @@
-**NOTE: this is a work in progress, and any feedback will be very useful**
+**NOTE: This is under active development, any feedback will be very useful**
 
 # dragonflye
 :dragon: :fly: Assemble bacterial isolate genomes from Nanopore reads
