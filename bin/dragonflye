@@ -1,42 +1,42 @@
 #!/usr/bin/env perl
 # Dragonflye - A very fast flye!
-#SYNOPSIS
-#  De novo assembly pipeline for bacterial isolates with Nanopore reads
-#USAGE
-#  dragonflye [options] --outdir DIR --reads READS.fastq.gz
-#GENERAL
-#  --help          This help
-#  --version       Print version and exit
-#  --check         Check dependencies are installed
-#  --seed N        Random seed to use (default: 42)
-#INPUT
-#  --reads XXX     Input Nanopore FASTQ (default: '')
-#  --depth N       Sub-sample --reads to this depth. Disable with --depth 0 (default: 150)
-#  --minreadlen N  Minimum read length. Disable with --minreadlength 0 (default: 1000)
-#  --gsize XXX     Estimated genome size eg. 3.2M <blank=AUTODETECT> (default: '')
-#OUTPUT
-#  --outdir XXX    Output folder (default: '')
-#  --force         Force overwite of existing output folder (default: OFF)
-#  --minlen N      Minimum contig length <0=AUTO> (default: 500)
-#  --mincov n.nn   Minimum contig coverage <0=AUTO> (default: 2)
-#  --namefmt XXX   Format of contig FASTA IDs in 'printf' style (default: 'contig%05d')
-#  --keepfiles     Keep intermediate files (default: OFF)
-#RESOURCES
-#  --tmpdir XXX    Fast temporary directory (default: '')
-#  --cpus N        Number of CPUs to use (0=ALL) (default: 8)
-#  --ram n.nn      Try to keep RAM usage below this many GB (default: 16)
-#ASSEMBLER
-#  --assembler XXX Assembler: miniasm flye raven (default: 'flye')
-#  --opts XXX      Extra assembler options in quotes eg. flye: '--interations' (default: '')
-#POLISHER
-#  --racon N       Number of polishing rounds to conduct with Racon (default: 1)
-#  --medaka N      Number of polishing rounds to conduct with Medaka (requires --model) (default: 0)
-#  --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
-#  --list_models   List the models available to Medaka (default: OFF)
-#MODULES
-#  --nofilter      Disable read length filtering (default: OFF)
-#  --nopolish      Disable assembly polishing (default: OFF)
-#HOMEPAGE
+# SYNOPSIS
+#   De novo assembly pipeline for bacterial isolates with Nanopore reads
+# USAGE
+#   dragonflye [options] --outdir DIR --reads READS.fastq.gz
+# GENERAL
+#   --help          This help
+#   --version       Print version and exit
+#   --check         Check dependencies are installed
+#   --seed N        Random seed to use (default: 42)
+# INPUT
+#   --reads XXX     Input Nanopore FASTQ (default: '')
+#   --depth N       Sub-sample --reads to this depth. Disable with --depth 0 (default: 150)
+#   --minreadlen N  Minimum read length. Disable with --minreadlength 0 (default: 1000)
+#   --gsize XXX     Estimated genome size eg. 3.2M <blank=AUTODETECT> (default: '')
+# OUTPUT
+#   --outdir XXX    Output folder (default: '')
+#   --force         Force overwite of existing output folder (default: OFF)
+#   --minlen N      Minimum contig length <0=AUTO> (default: 500)
+#   --mincov n.nn   Minimum contig coverage <0=AUTO> (default: 2)
+#   --namefmt XXX   Format of contig FASTA IDs in 'printf' style (default: 'contig%05d')
+#   --keepfiles     Keep intermediate files (default: OFF)
+# RESOURCES
+#   --tmpdir XXX    Fast temporary directory (default: '')
+#   --cpus N        Number of CPUs to use (0=ALL) (default: 8)
+#   --ram n.nn      Try to keep RAM usage below this many GB (default: 16)
+# ASSEMBLER
+#   --assembler XXX Assembler: miniasm flye raven (default: 'flye')
+#   --opts XXX      Extra assembler options in quotes eg. flye: '--interations' (default: '')
+# POLISHER
+#   --racon N       Number of polishing rounds to conduct with Racon (default: 1)
+#   --medaka N      Number of polishing rounds to conduct with Medaka (requires --model) (default: 0)
+#   --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
+#   --list_models   List the models available to Medaka (default: OFF)
+# MODULES
+#   --nofilter      Disable read length filtering (default: OFF)
+#   --nopolish      Disable assembly polishing (default: OFF)
+# HOMEPAGE
 #  https://github.com/rpetit3/dragonflye - Robert A Petit III
 use strict;
 use FindBin;
@@ -530,6 +530,8 @@ sub make_folder {
   if (-d $outdir) {
     if ($force) {
       msg("Forced overwrite of existing --outdir $outdir");
+      remove_tree($outdir);
+      make_folder($outdir);
     }
     else {
       err("Folder '$outdir' already exists. Try using --force");
@@ -776,7 +778,7 @@ sub usage {
   $exitcode ||= 0;
 
   select STDERR if $exitcode; # write to STDERR if exitcode is error
-
+  print "Dragonflye (v$VERSION) - A very fast flye\n\n";
   print "SYNOPSIS\n  De novo assembly pipeline for bacterial isolates with Nanopore reads\n";
   print "USAGE\n  $EXE [options] --outdir DIR --reads READS.fastq.gz\n";
   foreach (@Options) {

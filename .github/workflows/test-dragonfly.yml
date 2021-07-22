@@ -1,0 +1,78 @@
+name: dragonfly-test
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+    
+jobs:
+  bactopia-commands:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - name: Checkout rpetit3/dragonflye
+        uses: actions/checkout@v2
+
+      - name: Checkout nf-core test-datasets repo
+        uses: actions/checkout@v2
+        with:
+          repository: nf-core/test-datasets
+          ref: bacass
+          path: test-datasets
+
+      - name: Setup miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: dragonflye
+          auto-activate-base: false
+
+      - name: Setup dragonflye Environment
+        run: |
+          conda install -y -c conda-forge -c bioconda mamba
+          mamba install -y 'assembly-scan>=0.4.0' any2fasta filtlong flye 'kmc>=3.1' medaka miniasm perl perl-file-spec perl-findbin pigz racon rasusa raven-assembler seqtk
+
+      - name: Environment Information
+        run: uname -a && env
+
+      - name: Test dragonflye basics
+        run: |
+          echo "Testing dragonflye"
+          bin/dragonflye --version
+          bin/dragonflye --help
+          bin/dragonflye
+
+      - name: Test Flye Assembler
+        run: |
+          echo "Testing Flye Assembler"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 5000000 --assembler flye
+
+      - name: Test Miniasm Assembler
+        run: |
+          echo "Testing Miniasm Assembler"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/miniasm --gsize 5000000 --assembler miniasm
+
+      - name: Test Raven Assembler
+        run: |
+          echo "Testing Raven Assembler"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven --gsize 5000000 --assembler raven
+
+      - name: Test Raven Assembler + Racon Polish
+        run: |
+          echo "Testing Raven Assembler + Racon Polish"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --outdir tests/raven-racon --gsize 5000000 --assembler raven
+
+      - name: Test Raven Assembler + Medaka Polish
+        run: |
+          echo "Testing Flye Assembler + Medaka Polish"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --outdir tests/raven-medaka --gsize 5000000 --assembler raven --racon 0 --model r103_min_high_g345
+
+      - name: Test Raven Assembler + Racon & Medaka Polish
+        run: |
+          echo "Testing Flye Assembler + Racon & Medaka Polish"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --outdir tests/raven-both --gsize 5000000 --assembler raven

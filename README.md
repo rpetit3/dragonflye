@@ -1,16 +1,24 @@
-**NOTE: This is under active development, any feedback will be very useful**
+_**NOTE: This is under active development, any feedback will be very useful**_
 
 # dragonflye
+
 :dragon: :fly: Assemble bacterial isolate genomes from Nanopore reads
 
 *one day there will be support for the fly emoji on GitHub!*
 
 ## A Quick Note
-If you've worked with bacterial sequences, in all likelihood you have used one of Torsten Seemann's [tools](https://github.com/tseemann?tab=repositories). One such tool is [Shovill](https://github.com/tseemann/shovill), which takes the bacterial genome assembly process and makes it quick and painless. Shovill was developed for paired-end Illumina reads, and there is a fork, [shovill-se](https://github.com/rpetit3/shovill), which supports single-end reads.
 
-Given the widespread usage of Shovill, and Torsten basically laying much of the groundwork, I decided to use Shovill as a framework for Dragonflye. Dragonflye can be considered a fork of Shovill that supports assembling Oxford Nanopore sequences. By going this route users *will not* have to relearn parameters, and will already be familiar with the outputs.
+If you've worked with bacterial sequences, in all likelihood you have used one of Torsten Seemann's
+[tools](https://github.com/tseemann?tab=repositories). One such tool is [Shovill](https://github.com/tseemann/shovill),
+which takes the bacterial genome assembly process and makes it quick and painless. Shovill was developed for
+paired-end Illumina reads, and there is a fork, [shovill-se](https://github.com/rpetit3/shovill), which supports
+single-end reads.
 
-At this point, you might be wondering: *so Robert you just hacked Shovill to work with ONT reads, why not just call it 'shovill-ont'?* 
+Given the widespread usage of Shovill, and Torsten basically laying much of the groundwork, I decided to use Shovill
+as a framework for Dragonflye. Dragonflye can be considered a fork of Shovill that supports assembling Oxford Nanopore
+sequences. By going this route users *will not* have to relearn parameters, and will already be familiar with the outputs.
+
+At this point, you might be wondering: *so Robert you just hacked Shovill to work with ONT reads, why not just call it 'shovill-ont'?*
 
 That's because when I asked if there was interest in a "Shovill" for ONT reads, Curtis Kapsak (@kapsakcj) responded:
 
@@ -21,7 +29,11 @@ And, honestly how could I not go with that?!? It's an amazing play-on-words that
 So to sum it up, thank you Torsten for Shovill and providing a framework for Dragonflye.
 
 ## Introduction
-Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quick and easy. Still working on the *quick* part, but I think the *easy* part is there. Dragonflye currently supports [Flye](https://github.com/fenderglass/Flye), [Miniasm+Minipolish](https://github.com/rrwick/Minipolish) and [Raven](https://github.com/lbcb-sci/raven).
+
+Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quick and easy. Still working on the
+*quick* part, but I think the *easy* part is there. Dragonflye currently supports [Flye](https://github.com/fenderglass/Flye),
+[Miniasm+Minipolish](https://github.com/rrwick/Minipolish) and [Raven](https://github.com/lbcb-sci/raven) assemblers, and
+[Racon](https://github.com/isovic/racon) and [Medaka](https://github.com/nanoporetech/medaka) polishers.
 
 ## Main Steps
 
@@ -30,12 +42,13 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 3. Filter reads by length (default --minreadlength 1000) ([filtlong](https://github.com/rrwick/Filtlong))
 4. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm+Minipolish](https://github.com/rrwick/Minipolish), or [Raven](https://github.com/lbcb-sci/raven)
 5. Polish assembly with [Racon](https://github.com/isovic/racon) and/or [Medaka](https://github.com/nanoporetech/medaka)
-5. Remove contigs that are too short, too low coverage, or pure homopolymers
-6. Produce final FASTA with nicer names and parsable annotations
-7. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
+6. Remove contigs that are too short, too low coverage, or pure homopolymers
+7. Produce final FASTA with nicer names and parsable annotations
+8. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
 
 ## Quick Start
-```
+
+```{bash}
 dragonflye --reads my-ont.fastq.gz --outdir dragonflye --gsize 5000000
 ... LOG TEXT ...
 [dragonflye] Final assembly contigs: /home/robert_petit/repos/dragonflye/temp/dragonflye/contigs.fa
@@ -54,13 +67,16 @@ GCCAGGCAAATTCTGTTTTATCAGACCGCTTCTGCGTTCTGATTTAATCTGTATCAGGCT
 ```
 
 ## Installation
-**Placeholder for eventual bioconda release**
-```
+
+_Placeholder for eventual bioconda release_
+
+```{bash}
 mamba create -n dragonflye -c conda-forge -c bioconda dragonflye
 ```
 
 Until the Bioconda release, this should work:
-```
+
+```{bash}
 mamba -y create -n dragonflye -c conda-forge -c bioconda \
     'assembly-scan>=0.4.0' \
     any2fasta \
@@ -83,7 +99,10 @@ dragonflye/bin/dragonflye --help
 ```
 
 ## Usage
-```
+
+```{bash}
+Dragonflye - A very fast flye
+
 SYNOPSIS
   De novo assembly pipeline for bacterial isolates with Nanopore reads
 USAGE
@@ -121,51 +140,61 @@ MODULES
   --nofilter      Disable read length filtering (default: OFF)
   --nopolish      Disable assembly polishing (default: OFF)
 HOMEPAGE
-  https://github.com/rpetit3/dragonflye - Robert A Petit II
+  https://github.com/rpetit3/dragonflye - Robert A Petit III
 ```
 
 ### --depth
+
 Giving an assembler too much data is a bad thing. There comes a point where you are no
-longer adding new information (as the genome is a fixed size), and only adding more noise 
-(sequencing errors). Because of this Dragonflye will downsample your FASTQ files to a 
+longer adding new information (as the genome is a fixed size), and only adding more noise
+(sequencing errors). Because of this Dragonflye will downsample your FASTQ files to a
 specific depth (defaults to 150x). It estimates depth by dividing read yield by
 genome size.
 
 ### --gsize
-The genome size is needed to estimate depth and for the assembly stage. If you don't provide `--gsize`, 
-it will be estimated via k-mer frequencies using `kmc`. It doesn't need to be a perfect estimate, 
-just in the right ballpark. If you know the genome size it is usually better then the estimate, 
+
+The genome size is needed to estimate depth and for the assembly stage. If you don't provide `--gsize`,
+it will be estimated via k-mer frequencies using `kmc`. It doesn't need to be a perfect estimate,
+just in the right ballpark. If you know the genome size it is usually better then the estimate,
 and will save some time.
 
 ### --keepfiles
+
 This will keep all the intermediate files in `--outdir` so you can explore and debug.
 
 ### --cpus
+
 By default it will attempt to use all available CPU cores.
 
 ### --ram
+
 Dragonflye will do its best to keep memory usage below this value, but it is not guaranteed.
 If you are on a HPC cluster, you should make sure you tell your job submission engine
 a value higher than this.
 
 ### --assembler
+
 By default it will use FlyeA.
 
 ### --opts
+
 If you want to provide some assembler-specific parameters you can use the `--opts`
 parameter. Make sure you quote the parameters so they get passed as a single string
 eg. For `--assembler flye` you might use `--opts "--iterations 4 --plasmids"`.
 
 ### --racon & --medaka
+
 These two parameters adjust how many polishing rounds are conducted per-polisher. For example,
 `--racon 2` would conduct 2 rounds of polishing with Racon. If `--medaka` is provided, a model
 must also be provided with `--model`.
 
 ### --model
+
 A valid basecaller model must be provided with `--model`. If a valid model is provided, but
 `--medaka` was not provided it will assume `--medaka 1`.
 
 ### --list_models
+
 This will list all basecaller models that are avialable in Medaka.
 
 ### Choosing which stages to use
@@ -188,6 +217,7 @@ Variable | Option | Default
 `$TMPDIR` | `--tmpdir` | `/tmp`
 
 ## Output Files
+
 Filename | Description
 ---------|------------
 `contigs.fa` | The final assembly you should use
@@ -206,12 +236,16 @@ Filename | Description
 
 * _Doesn't Trycycler already do this?_
 
-  Dragonflye is not trying to replicate [Trycycler](https://github.com/rrwick/Trycycler), Trycycler is on a whole 'nother level. If you are looking to get super high quality assemblies with some manual inspection steps in between, use Trycycler. But, if you are looking to just get a quick assembly that you can work with, that's what Dragonfly is for.
+  Dragonflye is not trying to replicate [Trycycler](https://github.com/rrwick/Trycycler), Trycycler is on a whole 'nother level. If you are looking to
+  get super high quality assemblies with some manual inspection steps in between, use Trycycler. But, if you are looking to just get a quick assembly
+  that you can work with, that's what Dragonfly is for.
 
 ## Feedback
+
 Please file questions, bugs or ideas to the [Issue Tracker](https://github.com/rpetit3/dragonflye/issues)
 
 ## Acknowledgements
+
 I would like to personally extend my many thanks and gratitude to the authors of these software packages. Really, thank you very much!
 
 ### Software Included
@@ -268,9 +302,8 @@ _Vaser, R., Šikić, M. [Time- and memory-efficient genome assembly with Raven.]
 A fast and lightweight tool for processing sequences in the FASTA or FASTQ format.  
 _Li, H. [Seqtk: Toolkit for processing sequences in FASTA/Q formats](https://github.com/lh3/seqtk)_  
 
-
 ## Author
 
-- Robert A. Petit III
-- Web: https://www.robertpetit.com
-- Twitter: [@rpetit3](https://twitter.com/rpetit3)
+* Robert A. Petit III
+* Web: [https://www.robertpetit.com](https://www.robertpetit.com)
+* Twitter: [@rpetit3](https://twitter.com/rpetit3)
