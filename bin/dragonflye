@@ -1,10 +1,43 @@
 #!/usr/bin/env perl
-# mamba create -y -n dragonflye -c conda-forge -c bioconda flye filtlong rasusa seqtk \
-#                                                  pigz perl perl-file-spec perl-findbin \
-#                                                 'kmc>=3.1' miniasm any2fasta \
-#                                                 raven-assembler 'assembly-scan>=0.4' medaka
-#
-#
+# Dragonflye - A very fast flye!
+#SYNOPSIS
+#  De novo assembly pipeline for bacterial isolates with Nanopore reads
+#USAGE
+#  dragonflye [options] --outdir DIR --reads READS.fastq.gz
+#GENERAL
+#  --help          This help
+#  --version       Print version and exit
+#  --check         Check dependencies are installed
+#  --seed N        Random seed to use (default: 42)
+#INPUT
+#  --reads XXX     Input Nanopore FASTQ (default: '')
+#  --depth N       Sub-sample --reads to this depth. Disable with --depth 0 (default: 150)
+#  --minreadlen N  Minimum read length. Disable with --minreadlength 0 (default: 1000)
+#  --gsize XXX     Estimated genome size eg. 3.2M <blank=AUTODETECT> (default: '')
+#OUTPUT
+#  --outdir XXX    Output folder (default: '')
+#  --force         Force overwite of existing output folder (default: OFF)
+#  --minlen N      Minimum contig length <0=AUTO> (default: 500)
+#  --mincov n.nn   Minimum contig coverage <0=AUTO> (default: 2)
+#  --namefmt XXX   Format of contig FASTA IDs in 'printf' style (default: 'contig%05d')
+#  --keepfiles     Keep intermediate files (default: OFF)
+#RESOURCES
+#  --tmpdir XXX    Fast temporary directory (default: '')
+#  --cpus N        Number of CPUs to use (0=ALL) (default: 8)
+#  --ram n.nn      Try to keep RAM usage below this many GB (default: 16)
+#ASSEMBLER
+#  --assembler XXX Assembler: miniasm flye raven (default: 'flye')
+#  --opts XXX      Extra assembler options in quotes eg. flye: '--interations' (default: '')
+#POLISHER
+#  --racon N       Number of polishing rounds to conduct with Racon (default: 1)
+#  --medaka N      Number of polishing rounds to conduct with Medaka (requires --model) (default: 0)
+#  --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
+#  --list_models   List the models available to Medaka (default: OFF)
+#MODULES
+#  --nofilter      Disable read length filtering (default: OFF)
+#  --nopolish      Disable assembly polishing (default: OFF)
+#HOMEPAGE
+#  https://github.com/rpetit3/dragonflye - Robert A Petit III
 use strict;
 use FindBin;
 use File::Path qw(make_path remove_tree);
@@ -19,7 +52,7 @@ use POSIX qw(strftime);
 
 # Globals
 my $EXE = basename($PROGRAM_NAME);
-my $VERSION = "0.0.1";
+my $VERSION = "1.0.0";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
 my $BAM = "$EXE.bam";
