@@ -244,13 +244,14 @@ elsif ($assembler eq 'miniasm') {
   run_cmd("any2fasta $asmdir/assembly_graph.gfa 2>&1 1> $asmdir/assembly.fasta", "miniasm - any2fasta");
   copy("$asmdir/assembly.fasta", $asm);
   $asminfo = "$asmdir/assembly_graph.gfa";
+  msg("Contig coverage not available from Miniasm, skipping coverage check");
 }
 elsif ($assembler eq 'raven') {
   make_folder($asmdir);
   # Set polish rounds to 0 (-p 0)
   run_cmd("raven --threads $cpus -p 0 --graphical-fragment-assembly $asmdir/assembly_graph.gfa $opts $FINAL_READS 2>&1 1> $asmdir/assembly.fasta", "raven");
-  msg("Contig coverage not available from Raven, skipping coverage check");
   copy("$asmdir/assembly.fasta", $asm);
+  msg("Contig coverage not available from Raven, skipping coverage check");
 }
 else {
   err("Invalid --assembler '$assembler'");
@@ -311,27 +312,33 @@ msg("Using assembly file '$POLISHED_FASTA' => '$asm'");
 my $seq = read_fasta($asm);
 my $info = read_info($asminfo, $assembler);
 my $metadata = "$polish_info sw=$EXE-$asmdir/$VERSION date=".strftime("%Y%m%d", localtime);
-
 my %len = map { ( $_ => length($seq->{$_}) ) } (keys %{$seq});
 for my $id (sort { $len{$b} <=> $len{$a} } keys %{$seq}) {
-  my $cov = $depth;
+  my $assembler_metadata = "";
+  my $cov = 0;
   if ($assembler eq "flye") {
-    $cov = $info->{$id}->{'cov'};
-    $metadata .= " circular=" . $info->{$id}->{'circ'};
-  }
-  elsif ($assembler eq "miniasm") {
-    $cov = $info->{$id}->{'cov'};
-  }
-  elsif ($assembler eq "raven") {
-    $cov = 0
+    if (exists $info->{$id}) {
+      $cov = $info->{$id}{'cov'};
+      $assembler_metadata .= " circular=" . $info->{$id}{'circ'};
+    } else {
+      foreach my $key (keys %$info) {
+        my $start_id = "${key}_";
+        if ($id =~ /^$start_id/) {
+            msg("Matched ${key} to ${id}");
+            $cov = $info->{$key}{'cov'};
+            $assembler_metadata .= " circular=" . $info->{$key}{'circ'};
+            last;
+        } 
+      }
+    }
   }
 
   if ($len{$id} < $minlen) {
     msg("Removing short contig (< $minlen bp): $id");
     delete $seq->{$id};
   }
-  elsif ($cov < $mincov && $assembler ne "raven") {
-    msg("Removing low coverage contig (< $mincov x): $id");
+  elsif ($cov < $mincov && $assembler eq "flye") {
+    msg("Removing low coverage contig (${cov}x < ${mincov}x): $id");
     delete $seq->{$id};
   }
   elsif ($seq->{$id} =~  m/^(.)\1+$/) {
@@ -343,14 +350,14 @@ for my $id (sort { $len{$b} <=> $len{$a} } keys %{$seq}) {
     my $len = $len{$id};
     $nbases += $len;
     if ($cov > 0) {
-      $cov = $cov == 0 ? "" : sprintf " cov=%.1f", $cov;
+      $cov = sprintf " cov=%.1f", $cov;
     } 
     else {
       $cov = "";
     }
     
     my $corr = "";
-    my $newid = sprintf "$namefmt len=$len$cov$corr origname=$id $metadata", $ncontigs;
+    my $newid = sprintf "$namefmt len=$len$cov$corr origname=$id $metadata$assembler_metadata", $ncontigs;
     $seq->{$newid} = $seq->{$id};
     delete $seq->{$id};
   }
@@ -653,11 +660,10 @@ sub read_info {
   my($fname, $aname) = @_;
   my $info;
   if (-s $fname) {
-    open my $INFO, '<', $fname or err("Could not open $fname");
-    while (my $line = <$INFO>) {
+    open my $INFO_FH, '<', $fname or err("Could not open $fname");
+    while (my $line = <$INFO_FH>) {
       chomp $line;
       my @cols = split(/\t/, $line);
-
       if ($aname eq "flye") {
         # Colnames
         # 0:seq_name, 1:length, 2:cov., 3:circ., 4:repeat, 5:mult., 6:alt_group, 7:graph_path
@@ -670,7 +676,7 @@ sub read_info {
           'multi' => $cols[5],
           'alt_group' => $cols[6],
           'graph_path' => $cols[7]
-        }
+        };
       }
       elsif ($aname eq "miniasm") {
         # The coverage is in the assembly graph
@@ -683,7 +689,7 @@ sub read_info {
         }
       }
     }
-    close $INFO;
+    close $INFO_FH;
   }
   return $info;
 }
