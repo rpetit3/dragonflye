@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.2 rpetit3/dragonflye "Wandering Glider" - 2021/07/26
+
+* Fixed coverage handling for Flye
+* Miniasm and Raven cannot be filtered by coverage due to these assemblers not outputing contig coverage
+
 ## v1.0.1 rpetit3/dragonflye "Green Darner" - 2021/07/26
 
 * Use [Nanoq](https://github.com/esteinig/nanoq) instead of [Filtlong](https://github.com/rrwick/Filtlong) for read length filtering
