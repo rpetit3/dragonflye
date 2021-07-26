@@ -212,7 +212,7 @@ Filename | Description
 `dragonflye.log` | Full log file for bug reporting
 `flye.fasta` | Raw assembly (flye)
 `flye-info.txt` | Information about contigs output by Flye
-`miniasm_minipolish.fasta` | Raw assembly (miniasm+minipolish)
+`miniasm.fasta` | Raw assembly (miniasm)
 `raven.fasta` | Raw assembly (raven)
 
 ## FAQ
