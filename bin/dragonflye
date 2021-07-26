@@ -71,12 +71,12 @@ my %ASSEMBLER = ( map { $_ => 1 } qw(flye miniasm raven) );
 my %VERSION = (
   'any2fasta'     => 'any2fasta -v 2>&1',
   'assembly-scan' => 'assembly-scan --version 2>&1',
-  'filtlong'      => 'filtlong --version 2>&1',
   'flye'          => 'flye --version 2>&1',
   'kmc'           => 'kmc -h 2>&1 | grep KMC',
   'medaka'        => 'medaka --version 2>&1',
   'miniasm'       => 'miniasm -V 2>&1',
   'minimap2'      => 'minimap2 --version 2>&1',
+  'nanoq'         => 'nanoq --version 2>&1',
   'pigz'          => 'pigz --version 2>&1',
   'racon'         => 'racon --version 2>&1',
   'rasusa'        => 'rasusa --version 2>&1',
@@ -205,7 +205,7 @@ else {
 # Filter reads by length
 unless ($nofilter) {
   msg("Filter reads based on length and quality");
-  run_cmd("filtlong --min_length $minreadlen $READS 2>&1 1> READS.fq", "filtlong");
+  run_cmd("nanoq --min_length $minreadlen --fastx $READS --detail 2>&1 1> READS.fq", "nanoq");
   run_cmd("pigz -f -p $cpus --fast READS.fq 2>&1", "pigz");
 }
 else {

@@ -1,8 +1,3 @@
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/rpetit3/dragonflye)](https://github.com/rpetit3/dragonflye/releases)
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/dragonflye/badges/installer/conda.svg)](https://bioconda.github.io/recipes/dragonflye/README.html) 
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/dragonflye/badges/downloads.svg)](https://anaconda.org/bioconda/dragonflye)
-[![GitHub](https://img.shields.io/github/license/rpetit3/dragonflye)](https://raw.githubusercontent.com/rpetit3/dragonflye/master/LICENSE)
-
 _**NOTE: This is under active development, any feedback will be very useful**_
 
 # dragonflye
@@ -73,16 +68,34 @@ GCCAGGCAAATTCTGTTTTATCAGACCGCTTCTGCGTTCTGATTTAATCTGTATCAGGCT
 
 ## Installation
 
-Dragonflye is available from Bioconda. Dragonflye includes a lot of programs, so it can take `conda` a 
-while to solve the environment. Because of this, I personally use [Mamba](https://github.com/mamba-org/mamba) 
-to install it, because it's so much faster.
+_Placeholder for eventual bioconda release_
 
 ```{bash}
-# With conda
-conda create -n dragonflye -c conda-forge -c bioconda dragonflye
-
-# With Mamba (much quicker)
 mamba create -n dragonflye -c conda-forge -c bioconda dragonflye
+```
+
+Until the Bioconda release, this should work:
+
+```{bash}
+mamba -y create -n dragonflye -c conda-forge -c bioconda \
+    'assembly-scan>=0.4.0' \
+    any2fasta \
+    filtlong \
+    flye \
+    'kmc>=3.1' \
+    medaka \
+    miniasm \
+    perl \
+    perl-file-spec \
+    perl-findbin \
+    pigz \
+    racon \
+    rasusa \
+    raven-assembler \
+    seqtk
+conda activate dragonflye
+git clone git@github.com:rpetit3/dragonflye.git
+dragonflye/bin/dragonflye --help
 ```
 
 ## Usage
@@ -217,10 +230,6 @@ Filename | Description
 
 ## FAQ
 
-* _Perl?!?! Perl?!? Really, why Perl?_
-
-  Dragonflye is a fok of Shovill, and Shovill was written in Perl. Haha so yeah, instead of writing from scratch, I dusted off the old Perl skills. Upon which the Perl interpretor basically told me I sucked at Perl every time I tried to make a change (haha kept forgetting the semi-colons at the end of the line!).
-
 * _Does `dragonflye` accept Illumina reads?_
 
   No, this is strictly for Nanopore reads only. If you want to assemble Illumina reads, use [Shovill](https://github.com/tseemann/shovill).
@@ -249,10 +258,6 @@ _Seemann, T. [any2fasta: Convert various sequence formats to FASTA](https://gith
 Generate basic stats for an assembly.  
 _Petit III, R. A. [assembly-scan: generate basic stats for an assembly](https://github.com/rpetit3/assembly-scan)._  
 
-* __[Filtlong](https://github.com/rrwick/Filtlong)__  
-A tool for quality filtering tool for long reads.  
-_Wick, R. R. [Filtlong: quality filtering tool for long reads](https://github.com/rrwick/Filtlong)._  
-
 * __[Flye](https://github.com/fenderglass/Flye)__  
 De novo assembler for single molecule sequencing reads using repeat graphs  
 _Kolmogorov, M., Yuan, J., Lin, Y, Pevzner, P., [Assembly of Long Error-Prone Reads Using Repeat Graphs](https://doi.org/10.1038/s41587-019-0072-8), Nature Biotechnology, (2019)_  
@@ -272,6 +277,10 @@ _Li, H. [Miniasm: Ultrafast de novo assembly for long noisy reads](https://githu
 * __[Minimap2](https://github.com/lh3/minimap2)__  
 A versatile pairwise aligner for genomic and spliced nucleotide sequences  
 _Li, H. [Minimap2: pairwise alignment for nucleotide sequences.](https://doi.org/10.1093/bioinformatics/bty191) Bioinformatics, 34:3094-3100. (2018)_  
+
+* __[Nanoq](https://github.com/esteinig/nanoq)__  
+Minimal but speedy quality control for nanopore reads in Rus  
+_Steinig, E. [Nanoq: Minimal but speedy quality control for nanopore reads in Rus](https://github.com/esteinig/nanoq)_  
 
 * __[Pigz](https://zlib.net/pigz/)__  
 A parallel implementation of gzip for modern multi-processor, multi-core machines.  
