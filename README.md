@@ -1,3 +1,8 @@
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/rpetit3/dragonflye)](https://github.com/rpetit3/dragonflye/releases)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/dragonflye/badges/installer/conda.svg)](https://bioconda.github.io/recipes/dragonflye/README.html) 
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/dragonflye/badges/downloads.svg)](https://anaconda.org/bioconda/dragonflye)
+[![GitHub](https://img.shields.io/github/license/rpetit3/dragonflye)](https://raw.githubusercontent.com/rpetit3/dragonflye/master/LICENSE)
+
 _**NOTE: This is under active development, any feedback will be very useful**_
 
 # dragonflye
@@ -39,7 +44,7 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 
 1. Estimate genome size and read length from reads (unless --gsize provided) ([kmc](https://github.com/refresh-bio/KMC))
 2. Reduce FASTQ files to a sensible depth (default --depth 150) ([rasusa](https://github.com/mbhall88/rasusa))
-3. Filter reads by length (default --minreadlength 1000) ([filtlong](https://github.com/rrwick/Filtlong))
+3. Filter reads by length (default --minreadlength 1000) ([Nanoq](https://github.com/esteinig/nanoq))
 4. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm+Minipolish](https://github.com/rrwick/Minipolish), or [Raven](https://github.com/lbcb-sci/raven)
 5. Polish assembly with [Racon](https://github.com/isovic/racon) and/or [Medaka](https://github.com/nanoporetech/medaka)
 6. Remove contigs that are too short, too low coverage, or pure homopolymers
@@ -68,34 +73,16 @@ GCCAGGCAAATTCTGTTTTATCAGACCGCTTCTGCGTTCTGATTTAATCTGTATCAGGCT
 
 ## Installation
 
-_Placeholder for eventual bioconda release_
+Dragonflye is available from Bioconda. Dragonflye includes a lot of programs, so it can take `conda` a 
+while to solve the environment. Because of this, I personally use [Mamba](https://github.com/mamba-org/mamba) 
+to install it, because it's so much faster.
 
 ```{bash}
+# With conda
+conda create -n dragonflye -c conda-forge -c bioconda dragonflye
+
+# With Mamba (much quicker)
 mamba create -n dragonflye -c conda-forge -c bioconda dragonflye
-```
-
-Until the Bioconda release, this should work:
-
-```{bash}
-mamba -y create -n dragonflye -c conda-forge -c bioconda \
-    'assembly-scan>=0.4.0' \
-    any2fasta \
-    filtlong \
-    flye \
-    'kmc>=3.1' \
-    medaka \
-    miniasm \
-    perl \
-    perl-file-spec \
-    perl-findbin \
-    pigz \
-    racon \
-    rasusa \
-    raven-assembler \
-    seqtk
-conda activate dragonflye
-git clone git@github.com:rpetit3/dragonflye.git
-dragonflye/bin/dragonflye --help
 ```
 
 ## Usage
@@ -229,6 +216,10 @@ Filename | Description
 `raven.fasta` | Raw assembly (raven)
 
 ## FAQ
+
+* _Perl?!?! Perl?!? Really, why Perl?_
+
+  Dragonflye is a fok of Shovill, and Shovill was written in Perl. Haha so yeah, instead of writing from scratch, I dusted off the old Perl skills. Upon which the Perl interpretor basically told me I sucked at Perl every time I tried to make a change (haha kept forgetting the semi-colons at the end of the line!).
 
 * _Does `dragonflye` accept Illumina reads?_
 
