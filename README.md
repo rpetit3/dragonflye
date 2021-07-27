@@ -1,4 +1,4 @@
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/rpetit3/dragonflye)](https://github.com/rpetit3/dragonflye/releases)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/rpetit3/dragonflye?sort=semver)](https://github.com/rpetit3/dragonflye/releases)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/dragonflye/badges/installer/conda.svg)](https://bioconda.github.io/recipes/dragonflye/README.html) 
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/dragonflye/badges/downloads.svg)](https://anaconda.org/bioconda/dragonflye)
 [![GitHub](https://img.shields.io/github/license/rpetit3/dragonflye)](https://raw.githubusercontent.com/rpetit3/dragonflye/master/LICENSE)
