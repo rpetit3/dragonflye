@@ -52,7 +52,7 @@ use POSIX qw(strftime);
 
 # Globals
 my $EXE = basename($PROGRAM_NAME);
-my $VERSION = "1.0.2";
+my $VERSION = "1.0.3";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
 my $BAM = "$EXE.bam";
@@ -537,8 +537,6 @@ sub make_folder {
   if (-d $outdir) {
     if ($force) {
       msg("Forced overwrite of existing --outdir $outdir");
-      remove_tree($outdir);
-      make_folder($outdir);
     }
     else {
       err("Folder '$outdir' already exists. Try using --force");

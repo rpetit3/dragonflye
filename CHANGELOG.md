@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.3 rpetit3/dragonflye "Common Whitetail" - 2021/07/27
+
+* Fix infinite loop that occured `--outdir ./ --force` (`./` always exists so it keeps trying ot remove it)
+
 ## v1.0.2 rpetit3/dragonflye "Wandering Glider" - 2021/07/26
 
 * Fixed coverage handling for Flye
