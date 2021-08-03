@@ -141,6 +141,12 @@ $namefmt or err("Please provide a --namefmt for contig IDs");
 $namefmt =~ m/%\d+d/ or err("--namefmt must have a %d placeholder for the contig counter");
 exists $ASSEMBLER{$assembler} or err("Invalid --assembler '$assembler'");
 
+# Setup Minimap2 CPUs (it adds 1 to given value, so let's substract 1)
+my $mm2_cpus = $cpus;
+if ($cpus > 1) {
+  $mm2_cpus = $cpus - 1;
+}
+
 # Check deps
 check_deps();
 
@@ -186,29 +192,32 @@ unless ($gsize) {
 }
 msg("Using genome size $gsize bp");
 
+
 # Estimate sequencing depth
 my $orig_depth = int( $stat->{'total_bp'} / $gsize );
 msg("Estimated sequencing depth: ${orig_depth}x");
+
+# Optionally filter reads by length
+if (!$nofilter and $minreadlen > 0) {
+  msg("Filter reads based on length and quality");
+  run_cmd("nanoq --min_length $minreadlen --fastx $READS --detail 2>&1 1> READS.filt.fq", "nanoq");
+  run_cmd("pigz -f -p $cpus --fast READS.filt.fq 2>&1", "pigz");
+  $READS = "READS.filt.fq.gz";
+}
+else {
+  msg("No read filtering requested or necessary.");
+}
 
 # Optionally subsample the data to --depth, with rasusa
 if ($depth and $depth > 0 and $orig_depth > 1.1 * $depth) {
   my $factor = sprintf "%.3f", $depth / $orig_depth;
   msg("Subsampling reads from ${orig_depth}x to ${depth}x");
-  run_cmd("rasusa -i \Q$READS\E -c $depth -g $gsize -s $seed  2>&1 1> READS.sub.fq", "rasusa");
-  run_cmd("pigz -f -p $cpus --fast READS.sub.fq 2>&1", "pigz");
-  $READS = "READS.sub.fq.gz";
+  run_cmd("rasusa -i \Q$READS\E -c $depth -g $gsize -s $seed  2>&1 1> READS.fq", "rasusa");
+  run_cmd("pigz -f -p $cpus --fast READS.fq 2>&1", "pigz");
+  $READS = "READS.fq.gz";
 }
 else {
   msg("No read depth reduction requested or necessary.");
-}
-
-# Filter reads by length
-unless ($nofilter) {
-  msg("Filter reads based on length and quality");
-  run_cmd("nanoq --min_length $minreadlen --fastx $READS --detail 2>&1 1> READS.fq", "nanoq");
-  run_cmd("pigz -f -p $cpus --fast READS.fq 2>&1", "pigz");
-}
-else {
   run_cmd("ln -sf \Q$READS\E READS.fq.gz 2>&1");
 }
 
@@ -239,7 +248,7 @@ if ($assembler eq 'flye') {
 }
 elsif ($assembler eq 'miniasm') {
   make_folder($asmdir);
-  run_cmd("minimap2 -x ava-ont -t $cpus $FINAL_READS $FINAL_READS 2>&1 1> $asmdir/minimap2-overlaps.paf", "miniasm - minimap2");
+  run_cmd("minimap2 -x ava-ont -t $mm2_cpus $FINAL_READS $FINAL_READS 2>&1 1> $asmdir/minimap2-overlaps.paf", "miniasm - minimap2");
   run_cmd("miniasm -f $FINAL_READS $asmdir/minimap2-overlaps.paf 2>&1 1> $asmdir/assembly_graph.gfa", "miniasm - miniasm");
   run_cmd("any2fasta $asmdir/assembly_graph.gfa 2>&1 1> $asmdir/assembly.fasta", "miniasm - any2fasta");
   copy("$asmdir/assembly.fasta", $asm);
@@ -271,7 +280,7 @@ unless ($nopolish) {
     for (my $i = 1; $i <= $racon; $i++) {
       my $polish_dir = "$asmdir/polish/racon/$i";
       make_folder($polish_dir);
-      run_cmd("minimap2 -t $cpus -x map-ont $POLISHED_FASTA $FINAL_READS 2>&1  1> $polish_dir/aligments.paf", "polishing - racon ($i of $racon)");
+      run_cmd("minimap2 -t $mm2_cpus -x map-ont $POLISHED_FASTA $FINAL_READS 2>&1  1> $polish_dir/aligments.paf", "polishing - racon ($i of $racon)");
       run_cmd("racon -t $cpus $FINAL_READS $polish_dir/aligments.paf $POLISHED_FASTA 2>&1 1> $polish_dir/consensus.fasta", "polishing - racon ($i of $racon)");
       $POLISHED_FASTA = "$polish_dir/consensus.fasta";
     }
