@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.4 rpetit3/dragonflye "Common Blue Damselfly" - 2021/08/03
+
+* Minimap2 uses cpus-1 to account for it using an extra thread for I/O
+    * [@chrisgulvik](https://github.com/chrisgulvik) - [mm2 CPU count for mapping](https://github.com/rpetit3/dragonflye/issues/2)
+* Run read length filtering before read depth reduction 
+    * [@mbhall88](https://github.com/mbhall88) - [Speedup read filtering](https://github.com/rpetit3/dragonflye/issues/1)
+
 ## v1.0.3 rpetit3/dragonflye "Common Whitetail" - 2021/07/27
 
 * Fix infinite loop that occured `--outdir ./ --force` (`./` always exists so it keeps trying ot remove it)

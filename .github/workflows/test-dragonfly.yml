@@ -54,12 +54,12 @@ jobs:
       - name: Test Miniasm Assembler
         run: |
           echo "Testing Miniasm Assembler"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/miniasm --gsize 5000000 --assembler miniasm
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 1 --nopolish --outdir tests/miniasm --gsize 5000000 --assembler miniasm
 
       - name: Test Raven Assembler
         run: |
           echo "Testing Raven Assembler"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven --gsize 5000000 --assembler raven
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --depth 5 --outdir tests/raven --gsize 5000000 --assembler raven
 
       - name: Test Raven Assembler + Racon Polish
         run: |
