@@ -37,7 +37,7 @@ So to sum it up, thank you Torsten for Shovill and providing a framework for Dra
 
 Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quick and easy. Still working on the
 *quick* part, but I think the *easy* part is there. Dragonflye currently supports [Flye](https://github.com/fenderglass/Flye),
-[Miniasm+Minipolish](https://github.com/rrwick/Minipolish) and [Raven](https://github.com/lbcb-sci/raven) assemblers, and
+[Miniasm](https://github.com/lh3/miniasm) and [Raven](https://github.com/lbcb-sci/raven) assemblers, and
 [Racon](https://github.com/isovic/racon) and [Medaka](https://github.com/nanoporetech/medaka) polishers.
 
 ## Main Steps
@@ -45,7 +45,7 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 1. Estimate genome size and read length from reads (unless --gsize provided) ([kmc](https://github.com/refresh-bio/KMC))
 2. Reduce FASTQ files to a sensible depth (default --depth 150) ([rasusa](https://github.com/mbhall88/rasusa))
 3. Filter reads by length (default --minreadlength 1000) ([Nanoq](https://github.com/esteinig/nanoq))
-4. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm+Minipolish](https://github.com/rrwick/Minipolish), or [Raven](https://github.com/lbcb-sci/raven)
+4. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm](https://github.com/lh3/miniasm), or [Raven](https://github.com/lbcb-sci/raven)
 5. Polish assembly with [Racon](https://github.com/isovic/racon) and/or [Medaka](https://github.com/nanoporetech/medaka)
 6. Remove contigs that are too short, too low coverage, or pure homopolymers
 7. Produce final FASTA with nicer names and parsable annotations
