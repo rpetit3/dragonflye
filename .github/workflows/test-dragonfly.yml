@@ -51,6 +51,11 @@ jobs:
           echo "Testing Flye Assembler"
           bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 5000000 --assembler flye
 
+      - name: Test Flye Assembler (quality filtered)
+        run: |
+          echo "Testing Flye Assembler"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 5000000 --assembler flye --quality 5
+
       - name: Test Miniasm Assembler
         run: |
           echo "Testing Miniasm Assembler"
