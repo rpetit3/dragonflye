@@ -61,6 +61,7 @@ my $APPDIR = abs_path( "$FindBin::RealBin/.." );
 my $LOGTMP = File::Temp->new();
 my $LOGFILE = $LOGTMP->filename;
 
+my $MIN_BQ = 3;
 my $MIN_RAM_GB = 2;           # for all tools
 
 my @CMDLINE = ($0, @ARGV);    # save this for printing to log later
