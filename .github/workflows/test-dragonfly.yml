@@ -46,25 +46,15 @@ jobs:
           bin/dragonflye --version
           bin/dragonflye --help
 
-      - name: Test Flye Assembler
+      - name: Test Raven Assembler (quality filtered)
         run: |
-          echo "Testing Flye Assembler"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 5000000 --assembler flye
+          echo "Test Raven Assembler (quality filtered)"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 5000000 --assembler raven --minquality 5
 
-      - name: Test Flye Assembler (quality filtered)
+      - name: Test Raven Assembler (quality filtered, no length filter)
         run: |
-          echo "Testing Flye Assembler"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 5000000 --assembler flye --minquality 5
-
-      - name: Test Flye Assembler (quality filtered, no length filter)
-        run: |
-          echo "Testing Flye Assembler"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 5000000 --assembler flye --minquality 5 --minreadlen 0
-
-      - name: Test Miniasm Assembler
-        run: |
-          echo "Testing Miniasm Assembler"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 1 --nopolish --outdir tests/miniasm --gsize 5000000 --assembler miniasm
+          echo "Test Raven Assembler (quality filtered, no length filter)"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 5000000 --assembler raven --minquality 5 --minreadlen 0
 
       - name: Test Raven Assembler
         run: |
@@ -85,3 +75,13 @@ jobs:
         run: |
           echo "Testing Flye Assembler + Racon & Medaka Polish"
           bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --outdir tests/raven-both --gsize 5000000 --assembler raven
+
+      - name: Test Flye Assembler
+        run: |
+          echo "Testing Flye Assembler"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 5000000 --assembler flye
+          
+      - name: Test Miniasm Assembler
+        run: |
+          echo "Testing Miniasm Assembler"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 1 --nopolish --outdir tests/miniasm --gsize 5000000 --assembler miniasm
