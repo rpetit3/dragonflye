@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.5 rpetit3/dragonflye "Black Saddlebags" - 2021/09/22
+
+* Add `--minquality` for quality filtering with nanoq
+    * [@chen1i6c04](https://github.com/chen1i6c04) - [Filtering reads quality](https://github.com/rpetit3/dragonflye/issues/3)
+
 ## v1.0.4 rpetit3/dragonflye "Common Blue Damselfly" - 2021/08/03
 
 * Minimap2 uses cpus-1 to account for it using an extra thread for I/O
