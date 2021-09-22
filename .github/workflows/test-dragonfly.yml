@@ -7,7 +7,7 @@ on:
     branches: [ main, dev ]
     
 jobs:
-  bactopia-commands:
+  dragonfly-tests:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
