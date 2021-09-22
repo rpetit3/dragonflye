@@ -128,6 +128,7 @@ $gsize = $gsize ? parse_genome_size($gsize) : 0;  # 0 = autodetect later
 $cpus ||= $CORES;  # if cpus==0 use all available
 $cpus > 0 or err("Invalid --cpus $cpus");
 $minreadlen >= 0 or err("Invalid --minreadlen $minreadlen");
+$minquality >= 0 or err("Invalid --minquality $minquality");
 $minlen >= 0 or err("Invalid --minlen $minlen");
 $medaka >= 0 or err("Invalid --medaka $medaka");
 $racon >= 0 or err("Invalid --racon $racon");
@@ -748,7 +749,7 @@ sub setOptions {
     {OPT=>"reads=s",      VAR=>\$READS,      DEFAULT=>'',   DESC=>"Input Nanopore FASTQ"},
     {OPT=>"depth=i",      VAR=>\$depth,      DEFAULT=>150,  DESC=>"Sub-sample --reads to this depth. Disable with --depth 0"},
     {OPT=>"minreadlen=i", VAR=>\$minreadlen, DEFAULT=>1000, DESC=>"Minimum read length. Disable with --minreadlength 0"},
-    {OPT=>"minquality=i", VAR=>\$quality,    DEFAULT=>0,    DESC=>"Minimum average sequence quality. (default: OFF)"},
+    {OPT=>"minquality=i", VAR=>\$minquality, DEFAULT=>0,    DESC=>"Minimum average sequence quality. (default: OFF)"},
     {OPT=>"gsize=s",      VAR=>\$gsize,      DEFAULT=>'',   DESC=>"Estimated genome size eg. 3.2M <blank=AUTODETECT>"},
     "OUTPUT",
     {OPT=>"outdir=s",   VAR=>\$outdir,    DEFAULT=>'',   DESC=>"Output folder"},
