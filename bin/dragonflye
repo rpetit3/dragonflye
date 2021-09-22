@@ -199,8 +199,8 @@ my $orig_depth = int( $stat->{'total_bp'} / $gsize );
 msg("Estimated sequencing depth: ${orig_depth}x");
 
 # Optionally filter reads by length and quality
-if (!$nofilter and $minreadlen > 0) {
-  msg("Filter reads based on length and quality");
+if (!$nofilter and ($minreadlen > 0 or $minquality >0)) {
+  msg("Filter reads based on length and/or quality");
   run_cmd("nanoq --min_length $minreadlen --fastx $READS --min_quality $minquality --detail 2>&1 1> READS.filt.fq", "nanoq");
   run_cmd("pigz -f -p $cpus --fast READS.filt.fq 2>&1", "pigz");
   $READS = "READS.filt.fq.gz";
