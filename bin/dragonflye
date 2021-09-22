@@ -13,6 +13,7 @@
 #   --reads XXX     Input Nanopore FASTQ (default: '')
 #   --depth N       Sub-sample --reads to this depth. Disable with --depth 0 (default: 150)
 #   --minreadlen N  Minimum read length. Disable with --minreadlength 0 (default: 1000)
+#   --quality N     Minimum average sequence quality. (default: OFF)
 #   --gsize XXX     Estimated genome size eg. 3.2M <blank=AUTODETECT> (default: '')
 # OUTPUT
 #   --outdir XXX    Output folder (default: '')
@@ -60,7 +61,6 @@ my $APPDIR = abs_path( "$FindBin::RealBin/.." );
 my $LOGTMP = File::Temp->new();
 my $LOGFILE = $LOGTMP->filename;
 
-my $MIN_BQ = 3;
 my $MIN_RAM_GB = 2;           # for all tools
 
 my @CMDLINE = ($0, @ARGV);    # save this for printing to log later
@@ -92,8 +92,8 @@ my $MEMORY = avail_ram_gb();
 my(@Options, $version,
     $outdir, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
     $kmers, $gsize, $READS, $assembler, $opts, $ram, $depth,
-    $model, $list_models, $racon, $medaka, $nofilter, $nopolish,
-    $minreadlen, $minlen, $mincov, $seed);
+    $quality, $model, $list_models, $racon, $medaka, $nofilter,
+    $nopolish, $minreadlen, $minlen, $mincov, $seed);
 setOptions();
 
 # Say hello
@@ -197,10 +197,10 @@ msg("Using genome size $gsize bp");
 my $orig_depth = int( $stat->{'total_bp'} / $gsize );
 msg("Estimated sequencing depth: ${orig_depth}x");
 
-# Optionally filter reads by length
+# Optionally filter reads by length and quality
 if (!$nofilter and $minreadlen > 0) {
   msg("Filter reads based on length and quality");
-  run_cmd("nanoq --min_length $minreadlen --fastx $READS --detail 2>&1 1> READS.filt.fq", "nanoq");
+  run_cmd("nanoq --min_length $minreadlen --fastx $READS --quality $quality --detail 2>&1 1> READS.filt.fq", "nanoq");
   run_cmd("pigz -f -p $cpus --fast READS.filt.fq 2>&1", "pigz");
   $READS = "READS.filt.fq.gz";
 }
@@ -747,6 +747,7 @@ sub setOptions {
     {OPT=>"reads=s",      VAR=>\$READS,      DEFAULT=>'',   DESC=>"Input Nanopore FASTQ"},
     {OPT=>"depth=i",      VAR=>\$depth,      DEFAULT=>150,  DESC=>"Sub-sample --reads to this depth. Disable with --depth 0"},
     {OPT=>"minreadlen=i", VAR=>\$minreadlen, DEFAULT=>1000, DESC=>"Minimum read length. Disable with --minreadlength 0"},
+    {OPT=>"quality=i",    VAR=>\$quality,    DEFAULT=>0,    DESC=>"Minimum average sequence quality. (default: OFF)"},
     {OPT=>"gsize=s",      VAR=>\$gsize,      DEFAULT=>'',   DESC=>"Estimated genome size eg. 3.2M <blank=AUTODETECT>"},
     "OUTPUT",
     {OPT=>"outdir=s",   VAR=>\$outdir,    DEFAULT=>'',   DESC=>"Output folder"},
