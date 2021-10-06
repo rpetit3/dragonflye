@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.6 rpetit3/dragonflye "Widow Skimmer" - 2021/10/05
+
+* Adapt `nanoq` parameters to `nanoq >- v0.8.1`
+
 ## v1.0.5 rpetit3/dragonflye "Black Saddlebags" - 2021/09/22
 
 * Add `--minquality` for quality filtering with nanoq
