@@ -1,13 +1,16 @@
-name: dragonfly-test
+name: dragonflye-test
 
 on:
   push:
     branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
-    
+  schedule:
+    # At 04:30 on Sunday, Tuesday, and Thursday
+    - cron:  '30 4 * * 0,2,4'
+
 jobs:
-  dragonfly-tests:
+  dragonflye-tests:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
