@@ -1,5 +1,13 @@
 # Changelog
 
+
+## v1.0.7 rpetit3/dragonflye "" - 2022/01/2?
+
+* Fix `--list_models` for newer version of medaka
+* Pin medaka to >v1.5.0 to account for usage change
+* add test for `--list_models` to CI
+
+
 ## v1.0.6 rpetit3/dragonflye "Widow Skimmer" - 2021/10/05
 
 * Adapt `nanoq` parameters to `nanoq >- v0.8.1`
