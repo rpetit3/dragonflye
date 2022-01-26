@@ -92,4 +92,4 @@ jobs:
       - name: Test --list_models
         run: |
           echo "Testing --list_models"
-          bin/dragonflye --list_models | grep r941_min_sup_g507
+          bin/dragonflye --list_models 2>&1 | grep r941_min_sup_g507
