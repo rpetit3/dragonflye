@@ -1,7 +1,7 @@
 # Changelog
 
 
-## v1.0.7 rpetit3/dragonflye "" - 2022/01/2?
+## v1.0.7 rpetit3/dragonflye "Twelve-spotted skimmer" - 2022/01/25
 
 * Fix `--list_models` for newer version of medaka
 * Pin medaka to >v1.5.0 to account for usage change
