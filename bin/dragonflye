@@ -55,7 +55,7 @@ use POSIX qw(strftime);
 
 # Globals
 my $EXE = basename($PROGRAM_NAME);
-my $VERSION = "1.0.7";
+my $VERSION = "1.0.8";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
 my $BAM = "$EXE.bam";
@@ -81,6 +81,7 @@ my %VERSION = (
   'minimap2'      => 'minimap2 --version 2>&1',
   'nanoq'         => 'nanoq --version 2>&1',
   'pigz'          => 'pigz --version 2>&1',
+  'porechop'      => 'porechop --version 2>&1',
   'racon'         => 'racon --version 2>&1',
   'rasusa'        => 'rasusa --version 2>&1',
   'raven'         => 'raven --version 2>&1',
