@@ -62,12 +62,12 @@ jobs:
       - name: Test Raven Assembler (quality filtered, no length filter, trimming)
         run: |
           echo "Test Raven Assembler (quality filtered, no length filter)"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen --gsize 5000000 --assembler raven --minquality 6 --minreadlen 0 --trim
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen-trim --gsize 5000000 --assembler raven --minquality 6 --minreadlen 0 --trim
 
       - name: Test Raven Assembler (quality filtered, no length filter, trimming, trim opts)
         run: |
           echo "Test Raven Assembler (quality filtered, no length filter)"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen --gsize 5000000 --assembler raven --minquality 6 --minreadlen 0 --trim --trimopts '--adapter_threshold 95'
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen-trimopts --gsize 5000000 --assembler raven --minquality 6 --minreadlen 0 --trim --trimopts '--adapter_threshold 95'
 
       - name: Test Raven Assembler
         run: |

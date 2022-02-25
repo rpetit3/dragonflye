@@ -58,7 +58,6 @@ my $EXE = basename($PROGRAM_NAME);
 my $VERSION = "1.0.8";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
-my $BAM = "$EXE.bam";
 my $APPDIR = abs_path( "$FindBin::RealBin/.." );
 my $LOGTMP = File::Temp->new();
 my $LOGFILE = $LOGTMP->filename;
