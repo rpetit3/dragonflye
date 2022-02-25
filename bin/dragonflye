@@ -35,6 +35,8 @@
 #   --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
 #   --list_models   List the models available to Medaka (default: OFF)
 # MODULES
+#   --trim          Enable adaptor trimming (default: OFF)
+#   --trimopts XXX  Extra porechop options in quotes eg. '--adapter_threshold 80' (default: '')
 #   --nofilter      Disable read length filtering (default: OFF)
 #   --nopolish      Disable assembly polishing (default: OFF)
 # HOMEPAGE
@@ -93,7 +95,7 @@ my $MEMORY = avail_ram_gb();
 my(@Options, $version,
     $outdir, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
     $kmers, $gsize, $READS, $assembler, $opts, $ram, $depth,
-    $model, $list_models, $racon, $medaka, $nofilter,
+    $model, $list_models, $racon, $medaka, $nofilter, $trim, $trimopts,
     $nopolish, $minreadlen, $minquality, $minlen, $mincov, $seed);
 setOptions();
 
@@ -214,12 +216,22 @@ else {
 if ($depth and $depth > 0 and $orig_depth > 1.1 * $depth) {
   my $factor = sprintf "%.3f", $depth / $orig_depth;
   msg("Subsampling reads from ${orig_depth}x to ${depth}x");
-  run_cmd("rasusa -i \Q$READS\E -c $depth -g $gsize -s $seed  2>&1 1> READS.fq", "rasusa");
-  run_cmd("pigz -f -p $cpus --fast READS.fq 2>&1", "pigz");
-  $READS = "READS.fq.gz";
+  run_cmd("rasusa -i \Q$READS\E -c $depth -g $gsize -s $seed  2>&1 1> READS.sub.fq", "rasusa");
+  run_cmd("pigz -f -p $cpus --fast READS.sub.fq 2>&1", "pigz");
+  $READS = "READS.sub.fq.gz";
 }
 else {
   msg("No read depth reduction requested or necessary.");
+}
+
+# Get reads: if trimming, trim the originals into this folder, otherwise symlink
+if ($trim) {
+  msg("Trimming reads");
+  run_cmd("porechop --input \Q$READS\E --threads $cpus --format fastq $trimopts 2>&1 1> READS.fq", "porechop");
+  run_cmd("pigz -f -p $cpus --fast READS.fq 2>&1", "pigz");
+}
+else {
+  msg("No read adapter trimming requested.");
   run_cmd("ln -sf \Q$READS\E READS.fq.gz 2>&1");
 }
 
@@ -771,6 +783,8 @@ sub setOptions {
     {OPT=>"model=s",      VAR=>\$model,       DEFAULT=>'',   DESC=>"The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used)"},
     {OPT=>"list_models!", VAR=>\$list_models, DEFAULT=>0,    DESC=>"List the models available to Medaka"},
     "MODULES",
+    {OPT=>"trim!",      VAR=>\$trim,      DEFAULT=>0,    DESC=>"Enable adaptor trimming"},
+    {OPT=>"trimopts=s", VAR=>\$trimopts,  DEFAULT=>'',   DESC=>"Extra porechop options in quotes eg. '--adapter_threshold 80'"},
     {OPT=>"nofilter!",  VAR=>\$nofilter,  DEFAULT=>0,    DESC=>"Disable read length filtering"},
     {OPT=>"nopolish!",  VAR=>\$nopolish,  DEFAULT=>0,    DESC=>"Disable assembly polishing"}
   );

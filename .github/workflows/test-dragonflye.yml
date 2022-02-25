@@ -38,7 +38,7 @@ jobs:
       - name: Setup dragonflye Environment
         run: |
           conda install -y -c conda-forge -c bioconda mamba 'python=3.8.0'
-          mamba install -y -c conda-forge -c bioconda 'assembly-scan>=0.4.0' any2fasta flye 'kmc>=3.1' 'medaka>=1.5.0' miniasm 'nanoq>=0.8.1' perl perl-file-spec perl-findbin pigz racon rasusa raven-assembler seqtk
+          mamba install -y -c conda-forge -c bioconda 'assembly-scan>=0.4.0' any2fasta flye 'kmc>=3.1' 'medaka>=1.5.0' miniasm 'nanoq>=0.8.1' perl perl-file-spec perl-findbin pigz racon rasusa raven-assembler seqtk porechop
 
       - name: Environment Information
         run: uname -a && env
@@ -58,6 +58,16 @@ jobs:
         run: |
           echo "Test Raven Assembler (quality filtered, no length filter)"
           bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen --gsize 5000000 --assembler raven --minquality 6 --minreadlen 0
+
+      - name: Test Raven Assembler (quality filtered, no length filter, trimming)
+        run: |
+          echo "Test Raven Assembler (quality filtered, no length filter)"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen --gsize 5000000 --assembler raven --minquality 6 --minreadlen 0 --trim
+
+      - name: Test Raven Assembler (quality filtered, no length filter, trimming, trim opts)
+        run: |
+          echo "Test Raven Assembler (quality filtered, no length filter)"
+          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen --gsize 5000000 --assembler raven --minquality 6 --minreadlen 0 --trim --trimopts '--adapter_threshold 95'
 
       - name: Test Raven Assembler
         run: |
