@@ -235,6 +235,11 @@ Filename | Description
   get super high quality assemblies with some manual inspection steps in between, use Trycycler. But, if you are looking to just get a quick assembly
   that you can work with, that's what Dragonfly is for.
 
+* _Can I use my GPU during the Medaka step?_
+
+   Yes, you can! As of v1.0.8, `tensorflow-gpu` is included in the Bioconda recipe. This should allow you to use your GPU with Medaka. There
+   might be environment variables you have to set, to learn more please take a look here: [issues/7#issuecomment-1054693716]( https://github.com/rpetit3/dragonflye/issues/7#issuecomment-1054693716)
+
 ## Feedback
 
 Please file questions, bugs or ideas to the [Issue Tracker](https://github.com/rpetit3/dragonflye/issues)
