@@ -256,7 +256,7 @@ Please file questions, bugs or ideas to the [Issue Tracker](https://github.com/r
 
 I would like to personally extend my many thanks and gratitude to the authors of these software packages. Really, thank you very much!
 
-### Software Included
+### Software Included (19)
 
 * __[any2fasta](https://github.com/tseemann/any2fasta)__  
 Convert various sequence formats to FASTA  
