@@ -34,6 +34,9 @@
 #   --medaka N      Number of polishing rounds to conduct with Medaka (requires --model) (default: 0)
 #   --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
 #   --list_models   List the models available to Medaka (default: OFF)
+# SHORT-READ POLISHER
+#   --R1 XXX        Read 1 FASTQ to use for polishing (default: '')
+#   --R2 XXX        Read 2 FASTQ to use for polishing (default: '')
 # MODULES
 #   --trim          Enable adaptor trimming (default: OFF)
 #   --trimopts XXX  Extra porechop options in quotes eg. '--adapter_threshold 80' (default: '')
@@ -55,7 +58,7 @@ use POSIX qw(strftime);
 
 # Globals
 my $EXE = basename($PROGRAM_NAME);
-my $VERSION = "1.0.8";
+my $VERSION = "1.0.9";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
 my $APPDIR = abs_path( "$FindBin::RealBin/.." );
@@ -63,6 +66,7 @@ my $LOGTMP = File::Temp->new();
 my $LOGFILE = $LOGTMP->filename;
 
 my $MIN_BQ = 3;
+my $MIN_MQ = 60;              # for pilon
 my $MIN_RAM_GB = 2;           # for all tools
 
 my @CMDLINE = ($0, @ARGV);    # save this for printing to log later
@@ -73,6 +77,7 @@ my %ASSEMBLER = ( map { $_ => 1 } qw(flye miniasm raven) );
 my %VERSION = (
   'any2fasta'     => 'any2fasta -v 2>&1',
   'assembly-scan' => 'assembly-scan --version 2>&1',
+  'bwa'           => 'bwa 2>&1 | grep Version:',
   'flye'          => 'flye --version 2>&1',
   'kmc'           => 'kmc -h 2>&1 | grep KMC',
   'medaka'        => 'medaka --version 2>&1',
@@ -80,10 +85,13 @@ my %VERSION = (
   'minimap2'      => 'minimap2 --version 2>&1',
   'nanoq'         => 'nanoq --version 2>&1',
   'pigz'          => 'pigz --version 2>&1',
+  'pilon'         => 'pilon --version 2>&1',
   'porechop'      => 'porechop --version 2>&1',
   'racon'         => 'racon --version 2>&1',
   'rasusa'        => 'rasusa --version 2>&1',
   'raven'         => 'raven --version 2>&1',
+  'samtools'      => 'samtools 2>&1 | grep Version:',
+  'samclip'       => 'samclip --version 2>&1',
   'seqtk'         => 'seqtk 2>&1 | grep Version',
 );
 
@@ -95,8 +103,9 @@ my $MEMORY = avail_ram_gb();
 my(@Options, $version,
     $outdir, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
     $kmers, $gsize, $READS, $assembler, $opts, $ram, $depth,
-    $model, $list_models, $racon, $medaka, $nofilter, $trim, $trimopts,
-    $nopolish, $minreadlen, $minquality, $minlen, $mincov, $seed);
+    $model, $list_models, $racon, $medaka, $R1, $R2,
+    $nofilter, $trim, $trimopts, $nopolish, $minreadlen,
+    $minquality, $minlen, $mincov, $seed);
 setOptions();
 
 # Say hello
@@ -144,6 +153,13 @@ my $sort_cpus = max( 1, int(0.25 * $cpus) );  # for samtools sort in pipe
 $namefmt or err("Please provide a --namefmt for contig IDs");
 $namefmt =~ m/%\d+d/ or err("--namefmt must have a %d placeholder for the contig counter");
 exists $ASSEMBLER{$assembler} or err("Invalid --assembler '$assembler'");
+
+if (length($R1) && length($R2)) {
+    -r $R1 or err("Can't read --R1 $R1");
+    -r $R2 or err("Can't read --R2 $R2");
+} elsif (length($R1) || length($R2)) {
+    err("--R1 and --R2 must be used together");
+}
 
 # Setup Minimap2 CPUs (it adds 1 to given value, so let's substract 1)
 my $mm2_cpus = $cpus;
@@ -286,6 +302,7 @@ my $polish_info = "";
 my $POLISHED_FASTA = $asm;
 my $has_polished = 0;
 unless ($nopolish) {
+  copy($asm, "$assembler-unpolished.fasta");
   make_folder("$asmdir/polish");
   if ($racon) {
     # Polish with Racon
@@ -315,6 +332,52 @@ unless ($nopolish) {
     $polish_info .= "medaka:${medaka}x;";
   }
 
+  if (length($R1) && length($R2)) {
+    # polish using short reads
+    # quick clean using fastp
+    make_folder("$asmdir/polish/short_reads");
+    my $polish_dir = "$asmdir/polish/short_reads";
+    run_cmd("fastp --in1 $R1 --in2 $R2 --out1 $polish_dir/R1.fq.gz --out2 $polish_dir/R2.fq.gz --unpaired1 $polish_dir/u.fastq.gz --unpaired2 $polish_dir/u.fastq.gz", "short read polishing - fastp");
+    move("fastp.html", $polish_dir);
+    move("fastp.json", $polish_dir);
+
+    #if ($use_pilon) {
+    # Polish using Pilon
+    make_folder("$asmdir/polish/short_reads/pilon");
+    my $pilon_dir = "$asmdir/polish/short_reads/pilon";
+    my $BAM = "$pilon_dir/dragonflye.bam";
+    my $sort_ram = int($half_ram * 1024 / $sort_cpus); # RAM per thread, in Mb
+
+    # Create sorted BAM file
+    run_cmd("bwa index $POLISHED_FASTA", "bwa-index", "short read polishing - bwa-index");
+    run_cmd("samtools faidx $POLISHED_FASTA", "faidx", "short read polishing - faidx");
+    run_cmd("(bwa mem -v 3 -x intractg -t $cpus $POLISHED_FASTA $polish_dir/R1.fq.gz $polish_dir/R2.fq.gz"
+          ." | samclip --ref ${POLISHED_FASTA}.fai"
+          ." | samtools sort --threads $sort_cpus -m ${sort_ram}m"
+          ." --reference $POLISHED_FASTA -T $tmpdir -o $BAM)", "short read polishing - bwa+samtools-sort");
+    run_cmd("samtools index $BAM", "short read polishing - samtools-index");
+
+    msg("Polishing with Pilon");
+    run_cmd("pilon --genome $POLISHED_FASTA --frags $BAM --minmq $MIN_MQ --minqual $MIN_BQ"
+          ." --fix bases --outdir $pilon_dir --output pilon --threads $cpus --changes --mindepth 0.25", "short read polishing - pilon");
+
+    $POLISHED_FASTA = "$pilon_dir/pilon.fasta";
+    $polish_info .= "pilon:short_reads;";
+    $has_polished = 1;
+    #} else {
+    # https://github.com/alekseyzimin/masurca/issues/272 will need to have a solution
+    # # Polish using POLCA
+    #  make_folder("$asmdir/polish/short_reads/polca");
+    #  my $polca_dir = "$asmdir/polish/short_reads/polca";
+    #
+    #  msg("Polishing with POLCA");
+    #  run_cmd("polca.sh -a $POLISHED_FASTA -r '$polish_dir/R1.fq.gz $polish_dir/R2.fq.gz' -t $cpus -m 1G", "short read polishing - POLCA");
+    #  run_cmd("mv *.PolcaCorrected.fa $polca_dir/polca.fasta", "short read polishing - mv POLCA FASTA");;
+    #  $POLISHED_FASTA = "$polca_dir/polca.fasta";
+    #  $polish_info .= "polca:short_reads;";
+    #}
+  }
+
   copy($POLISHED_FASTA, $asm);
   if ($has_polished) {
     $polish_info = "polish=$polish_info";
@@ -322,6 +385,7 @@ unless ($nopolish) {
   else {
     $polish_info = "polish=none";
   }
+
 }
 else {
   $polish_info = "polish=none";
@@ -782,6 +846,9 @@ sub setOptions {
     {OPT=>"medaka=i",     VAR=>\$medaka,      DEFAULT=>0,    DESC=>"Number of polishing rounds to conduct with Medaka (requires --model)"},
     {OPT=>"model=s",      VAR=>\$model,       DEFAULT=>'',   DESC=>"The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used)"},
     {OPT=>"list_models!", VAR=>\$list_models, DEFAULT=>0,    DESC=>"List the models available to Medaka"},
+    "SHORT-READ POLISHER",
+    {OPT=>"R1=s",       VAR=>\$R1,        DEFAULT=>'',   DESC=>"Read 1 FASTQ to use for polishing"},
+    {OPT=>"R2=s",       VAR=>\$R2,        DEFAULT=>'',   DESC=>"Read 2 FASTQ to use for polishing"},
     "MODULES",
     {OPT=>"trim!",      VAR=>\$trim,      DEFAULT=>0,    DESC=>"Enable adaptor trimming"},
     {OPT=>"trimopts=s", VAR=>\$trimopts,  DEFAULT=>'',   DESC=>"Extra porechop options in quotes eg. '--adapter_threshold 80'"},
