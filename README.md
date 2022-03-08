@@ -48,9 +48,10 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 4. Remove adapters (requires `--trim` be given) ([Porechop](https://github.com/rrwick/Porechop))
 5. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm](https://github.com/lh3/miniasm), or [Raven](https://github.com/lbcb-sci/raven)
 6. Polish assembly with [Racon](https://github.com/isovic/racon) and/or [Medaka](https://github.com/nanoporetech/medaka)
-7. Remove contigs that are too short, too low coverage, or pure homopolymers
-8. Produce final FASTA with nicer names and parsable annotations
-9. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
+7. Polish assembly with short reads via [Pilon](https://github.com/broadinstitute/pilon)
+8. Remove contigs that are too short, too low coverage, or pure homopolymers
+9. Produce final FASTA with nicer names and parsable annotations
+10. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
 
 ## Quick Start
 
@@ -124,6 +125,9 @@ POLISHER
   --medaka N      Number of polishing rounds to conduct with Medaka (requires --model) (default: 0)
   --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
   --list_models   List the models available to Medaka (default: OFF)
+SHORT-READ POLISHER
+  --R1 XXX        Read 1 FASTQ to use for polishing (default: '')
+  --R2 XXX        Read 2 FASTQ to use for polishing (default: '')
 MODULES
   --trim          Enable adaptor trimming (default: OFF)
   --trimopts XXX  Extra porechop options in quotes eg. '--adapter_threshold 80' (default: '')
@@ -186,6 +190,10 @@ A valid basecaller model must be provided with `--model`. If a valid model is pr
 ### --list_models
 
 This will list all basecaller models that are avialable in Medaka.
+
+### --R1 & --R2
+
+If Illumina short-reads are provided, polishing will be done with Pilon.
 
 ### Choosing which stages to use
 
@@ -258,6 +266,14 @@ _Seemann, T. [any2fasta: Convert various sequence formats to FASTA](https://gith
 Generate basic stats for an assembly.  
 _Petit III, R. A. [assembly-scan: generate basic stats for an assembly](https://github.com/rpetit3/assembly-scan)._  
 
+* __[BWA](https://github.com/lh3/bwa/)__  
+Burrow-Wheeler Aligner for short-read alignment  
+Li H [Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM](http://arxiv.org/abs/1303.3997). _arXiv_ [q-bio.GN] (2013)  
+
+* __[fastp](https://github.com/OpenGene/fastp)__  
+An ultra-fast all-in-one FASTQ preprocessor (QC/adapters/trimming/filtering/splitting/merging...)  
+_Chen, S., Zhou, Y., Chen, Y., Gu, J., [fastp: an ultra-fast all-in-one FASTQ preprocessor](https://doi.org/10.1093/bioinformatics/bty560), Bioinformatics, Volume 34, Issue 17 (2018)_  
+
 * __[Flye](https://github.com/fenderglass/Flye)__  
 De novo assembler for single molecule sequencing reads using repeat graphs  
 _Kolmogorov, M., Yuan, J., Lin, Y, Pevzner, P., [Assembly of Long Error-Prone Reads Using Repeat Graphs](https://doi.org/10.1038/s41587-019-0072-8), Nature Biotechnology, (2019)_  
@@ -301,6 +317,14 @@ _Hall, M.B. [Rasusa: Randomly subsample sequencing reads to a specified coverage
 * __[Raven](https://github.com/lbcb-sci/raven)__  
 De novo genome assembler for long uncorrected reads  
 _Vaser, R., Šikić, M. [Time- and memory-efficient genome assembly with Raven.](https://doi.org/10.1038/s43588-021-00073-4) Nat Comput Sci 1, 332–336 (2021)._  
+
+* __[samclip](https://github.com/tseemann/samclip)__  
+Filter SAM file for soft and hard clipped alignments  
+Seemann T [Samclip: Filter SAM file for soft and hard clipped alignments](https://github.com/tseemann/samclip) (GitHub)  
+  
+* __[Samtools](https://github.com/samtools/samtools)__  
+Tools for manipulating next-generation sequencing data  
+Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R [The Sequence Alignment/Map format and SAMtools](http://dx.doi.org/10.1093/bioinformatics/btp352). _Bioinformatics_ 25, 2078–2079 (2009)  
 
 * __[Seqtk](https://github.com/lh3/seqtk)__  
 A fast and lightweight tool for processing sequences in the FASTA or FASTQ format.  

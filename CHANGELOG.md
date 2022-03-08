@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.9 rpetit3/dragonflye "Ebony jewelwing" - 2022/03/08
+
+* add short read polishing via Pilon
+* add gpu support for medaka polishing
+
 ## v1.0.8 rpetit3/dragonflye "Wandering Glider" - 2022/02/25
 
 * add `-trim` via porechop
