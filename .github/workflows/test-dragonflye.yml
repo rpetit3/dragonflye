@@ -26,7 +26,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: bactopia/bactopia-tests
-          ref: bacass
           path: bactopia-tests
 
       - name: Setup miniconda
