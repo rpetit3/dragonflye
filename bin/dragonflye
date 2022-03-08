@@ -341,7 +341,6 @@ unless ($nopolish) {
     move("fastp.html", $polish_dir);
     move("fastp.json", $polish_dir);
 
-    #if ($use_pilon) {
     # Polish using Pilon
     make_folder("$asmdir/polish/short_reads/pilon");
     my $pilon_dir = "$asmdir/polish/short_reads/pilon";
@@ -364,18 +363,6 @@ unless ($nopolish) {
     $POLISHED_FASTA = "$pilon_dir/pilon.fasta";
     $polish_info .= "pilon:short_reads;";
     $has_polished = 1;
-    #} else {
-    # https://github.com/alekseyzimin/masurca/issues/272 will need to have a solution
-    # # Polish using POLCA
-    #  make_folder("$asmdir/polish/short_reads/polca");
-    #  my $polca_dir = "$asmdir/polish/short_reads/polca";
-    #
-    #  msg("Polishing with POLCA");
-    #  run_cmd("polca.sh -a $POLISHED_FASTA -r '$polish_dir/R1.fq.gz $polish_dir/R2.fq.gz' -t $cpus -m 1G", "short read polishing - POLCA");
-    #  run_cmd("mv *.PolcaCorrected.fa $polca_dir/polca.fasta", "short read polishing - mv POLCA FASTA");;
-    #  $POLISHED_FASTA = "$polca_dir/polca.fasta";
-    #  $polish_info .= "polca:short_reads;";
-    #}
   }
 
   copy($POLISHED_FASTA, $asm);

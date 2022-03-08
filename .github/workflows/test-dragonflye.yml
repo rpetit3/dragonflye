@@ -22,12 +22,12 @@ jobs:
       - name: Checkout rpetit3/dragonflye
         uses: actions/checkout@v2
 
-      - name: Checkout nf-core test-datasets repo
+      - name: Checkout bactopia/bactopia-tests repo
         uses: actions/checkout@v2
         with:
-          repository: nf-core/test-datasets
+          repository: bactopia/bactopia-tests
           ref: bacass
-          path: test-datasets
+          path: bactopia-tests
 
       - name: Setup miniconda
         uses: conda-incubator/setup-miniconda@v2
@@ -52,52 +52,57 @@ jobs:
       - name: Test Raven Assembler (quality filtered)
         run: |
           echo "Test Raven Assembler (quality filtered)"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality --gsize 5000000 --assembler raven --minquality 8
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --nopolish --outdir tests/raven-minquality --gsize 300000 --assembler raven --minquality 8
 
       - name: Test Raven Assembler (quality filtered, no length filter)
         run: |
           echo "Test Raven Assembler (quality filtered, no length filter)"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen --gsize 5000000 --assembler raven --minquality 6 --minreadlen 0
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen --gsize 300000 --assembler raven --minquality 6 --minreadlen 0
 
       - name: Test Raven Assembler (quality filtered, no length filter, trimming)
         run: |
           echo "Test Raven Assembler (quality filtered, no length filter)"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen-trim --gsize 5000000 --assembler raven --minquality 6 --minreadlen 0 --trim
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen-trim --gsize 300000 --assembler raven --minquality 6 --minreadlen 0 --trim
 
       - name: Test Raven Assembler (quality filtered, no length filter, trimming, trim opts)
         run: |
           echo "Test Raven Assembler (quality filtered, no length filter)"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen-trimopts --gsize 5000000 --assembler raven --minquality 6 --minreadlen 0 --trim --trimopts '--adapter_threshold 95'
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen-trimopts --gsize 300000 --assembler raven --minquality 6 --minreadlen 0 --trim --trimopts '--adapter_threshold 95'
 
       - name: Test Raven Assembler
         run: |
           echo "Testing Raven Assembler"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --depth 5 --outdir tests/raven --gsize 5000000 --assembler raven
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --nopolish --depth 5 --outdir tests/raven --gsize 300000 --assembler raven
 
       - name: Test Raven Assembler + Racon Polish
         run: |
           echo "Testing Raven Assembler + Racon Polish"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --outdir tests/raven-racon --gsize 5000000 --assembler raven
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --outdir tests/raven-racon --gsize 300000 --assembler raven
 
       - name: Test Raven Assembler + Medaka Polish
         run: |
           echo "Testing Flye Assembler + Medaka Polish"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --outdir tests/raven-medaka --gsize 5000000 --assembler raven --racon 0 --model r103_min_high_g345
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --outdir tests/raven-medaka --gsize 300000 --assembler raven --racon 0 --model r103_min_high_g345
 
       - name: Test Raven Assembler + Racon & Medaka Polish
         run: |
           echo "Testing Flye Assembler + Racon & Medaka Polish"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --outdir tests/raven-both --gsize 5000000 --assembler raven
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --outdir tests/raven-both --gsize 300000 --assembler raven
+
+      - name: Test Raven Assembler + Racon & Pilon Polish
+        run: |
+          echo "Testing Flye Assembler + Racon & Pilon Polish"
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --R1 bactopia-tests/data/species/portiera/illumina/SRR2838702_R1.fastq.gz --R2 bactopia-tests/data/species/portiera/illumina/SRR2838702_R2.fastq.gz --cpus 0 --outdir tests/raven-both --gsize 300000 --assembler raven
 
       - name: Test Flye Assembler
         run: |
           echo "Testing Flye Assembler"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 5000000 --assembler flye
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --nopolish --outdir tests/flye --gsize 300000 --assembler flye
           
       - name: Test Miniasm Assembler
         run: |
           echo "Testing Miniasm Assembler"
-          bin/dragonflye --reads test-datasets/nanopore/subset15000.fq.gz --cpus 1 --nopolish --outdir tests/miniasm --gsize 5000000 --assembler miniasm
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 1 --nopolish --outdir tests/miniasm --gsize 300000 --assembler miniasm
 
       - name: Test --list_models
         run: |
