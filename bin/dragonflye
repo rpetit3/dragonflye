@@ -78,6 +78,7 @@ my %VERSION = (
   'any2fasta'     => 'any2fasta -v 2>&1',
   'assembly-scan' => 'assembly-scan --version 2>&1',
   'bwa'           => 'bwa 2>&1 | grep Version:',
+  'fastp'         => 'fastp --version 2>&1',
   'flye'          => 'flye --version 2>&1',
   'kmc'           => 'kmc -h 2>&1 | grep KMC',
   'medaka'        => 'medaka --version 2>&1',
