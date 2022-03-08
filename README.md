@@ -42,14 +42,15 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 
 ## Main Steps
 
-1. Estimate genome size and read length from reads (unless --gsize provided) ([kmc](https://github.com/refresh-bio/KMC))
-2. Reduce FASTQ files to a sensible depth (default --depth 150) ([rasusa](https://github.com/mbhall88/rasusa))
-3. Filter reads by length (default --minreadlength 1000) ([Nanoq](https://github.com/esteinig/nanoq))
-4. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm](https://github.com/lh3/miniasm), or [Raven](https://github.com/lbcb-sci/raven)
-5. Polish assembly with [Racon](https://github.com/isovic/racon) and/or [Medaka](https://github.com/nanoporetech/medaka)
-6. Remove contigs that are too short, too low coverage, or pure homopolymers
-7. Produce final FASTA with nicer names and parsable annotations
-8. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
+1. Estimate genome size and read length from reads (unless `--gsize` provided) ([kmc](https://github.com/refresh-bio/KMC))
+2. Filter reads by length (default `--minreadlength 1000`) ([Nanoq](https://github.com/esteinig/nanoq))
+3. Reduce FASTQ files to a sensible depth (default `--depth 150`) ([rasusa](https://github.com/mbhall88/rasusa))
+4. Remove adapters (requires `--trim` be given) ([Porechop](https://github.com/rrwick/Porechop))
+5. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm](https://github.com/lh3/miniasm), or [Raven](https://github.com/lbcb-sci/raven)
+6. Polish assembly with [Racon](https://github.com/isovic/racon) and/or [Medaka](https://github.com/nanoporetech/medaka)
+7. Remove contigs that are too short, too low coverage, or pure homopolymers
+8. Produce final FASTA with nicer names and parsable annotations
+9. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
 
 ## Quick Start
 
@@ -124,6 +125,8 @@ POLISHER
   --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
   --list_models   List the models available to Medaka (default: OFF)
 MODULES
+  --trim          Enable adaptor trimming (default: OFF)
+  --trimopts XXX  Extra porechop options in quotes eg. '--adapter_threshold 80' (default: '')
   --nofilter      Disable read length filtering (default: OFF)
   --nopolish      Disable assembly polishing (default: OFF)
 HOMEPAGE
@@ -191,6 +194,7 @@ Stage | Enable | Disable
 Genome size estimation | _default_ | `--gsize INT`
 Read subsampling | `--depth INT` | `--depth 0`
 Read length filtering | _default_ | `--nofilter`
+Adapter Trimming | `--trim` | _default_
 
 ### Environment variables recognised
 
@@ -230,6 +234,11 @@ Filename | Description
   Dragonflye is not trying to replicate [Trycycler](https://github.com/rrwick/Trycycler), Trycycler is on a whole 'nother level. If you are looking to
   get super high quality assemblies with some manual inspection steps in between, use Trycycler. But, if you are looking to just get a quick assembly
   that you can work with, that's what Dragonfly is for.
+
+* _Can I use my GPU during the Medaka step?_
+
+   Yes, you can! As of v1.0.8, `tensorflow-gpu` is included in the Bioconda recipe. This should allow you to use your GPU with Medaka. There
+   might be environment variables you have to set, to learn more please take a look here: [issues/7#issuecomment-1054693716]( https://github.com/rpetit3/dragonflye/issues/7#issuecomment-1054693716)
 
 ## Feedback
 
@@ -277,6 +286,10 @@ _Steinig, E. [Nanoq: Minimal but speedy quality control for nanopore reads in Ru
 A parallel implementation of gzip for modern multi-processor, multi-core machines.  
 _Adler, M. [pigz: A parallel implementation of gzip for modern multi-processor, multi-core machines.](https://zlib.net/pigz/) Jet Propulsion Laboratory (2015)._  
 
+* __[Porechop](https://github.com/rrwick/Porechop)__  
+Adapter trimmer for Oxford Nanopore reads  
+_Wick RR, Judd LM, Gorrie CL, Holt KE. [Completing bacterial genome assemblies with multiplex MinION sequencing.](https://doi.org/10.1099/mgen.0.000132) Microb Genom. 3(10):e000132 (2017)_  
+  
 * __[Racon](https://github.com/lbcb-sci/racon)__  
 Ultrafast consensus module for raw de novo genome assembly of long uncorrected reads  
 _R. Vaser, I. Sović, N. Nagarajan, M. Šikić, [Fast and accurate de novo genome assembly from long uncorrected reads.](http://dx.doi.org/10.1101/gr.214270.116) Genome Res. 27, 737–746 (2017)._  

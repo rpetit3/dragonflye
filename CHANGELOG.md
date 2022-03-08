@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.0.8 rpetit3/dragonflye "Wandering Glider" - 2022/02/25
+
+* add `-trim` via porechop
 
 ## v1.0.7 rpetit3/dragonflye "Twelve-spotted skimmer" - 2022/01/25
 
