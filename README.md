@@ -302,6 +302,10 @@ _Steinig, E. [Nanoq: Minimal but speedy quality control for nanopore reads in Ru
 A parallel implementation of gzip for modern multi-processor, multi-core machines.  
 _Adler, M. [pigz: A parallel implementation of gzip for modern multi-processor, multi-core machines.](https://zlib.net/pigz/) Jet Propulsion Laboratory (2015)._  
 
+* __[Pilon](https://github.com/broadinstitute/pilon/)__  
+An automated genome assembly improvement and variant detection tool  
+Walker BJ, Abeel T,  Shea T, Priest M, Abouelliel A, Sakthikumar S, Cuomo CA, Zeng Q, Wortman J, Young SK, Earl AM [Pilon: an integrated tool for comprehensive microbial variant detection and genome assembly improvement.](https://doi.org/10.1371/journal.pone.0112963) _PloS one_ 9.11 e112963 (2014)  
+
 * __[Porechop](https://github.com/rrwick/Porechop)__  
 Adapter trimmer for Oxford Nanopore reads  
 _Wick RR, Judd LM, Gorrie CL, Holt KE. [Completing bacterial genome assemblies with multiplex MinION sequencing.](https://doi.org/10.1099/mgen.0.000132) Microb Genom. 3(10):e000132 (2017)_  
