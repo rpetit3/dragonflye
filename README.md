@@ -9,8 +9,6 @@ _**NOTE: This is under active development, any feedback will be very useful**_
 
 :dragon: :fly: Assemble bacterial isolate genomes from Nanopore reads
 
-*one day there will be support for the fly emoji on GitHub!*
-
 ## A Quick Note
 
 If you've worked with bacterial sequences, in all likelihood you have used one of Torsten Seemann's
