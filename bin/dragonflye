@@ -104,7 +104,7 @@ my $MEMORY = avail_ram_gb();
 my(@Options, $version,
     $outdir, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
     $kmers, $gsize, $READS, $assembler, $opts, $ram, $depth,
-    $model, $list_models, $racon, $medaka, $R1, $R2,
+    $model, $list_models, $racon, $medaka, $R1, $R2, $pilon,
     $nofilter, $trim, $trimopts, $nopolish, $minreadlen,
     $minquality, $minlen, $mincov, $seed);
 setOptions();
@@ -144,6 +144,7 @@ $minquality >= 0 or err("Invalid --minquality $minquality");
 $minlen >= 0 or err("Invalid --minlen $minlen");
 $medaka >= 0 or err("Invalid --medaka $medaka");
 $racon >= 0 or err("Invalid --racon $racon");
+$pilon >= 0 or err("Invalid --pilon $pilon");
 (defined $mincov && $mincov >= 0) or err("Please provide a non-negative value for --mincov");
 $ram >= $MIN_RAM_GB or err("Invalid --ram $ram - need at least $MIN_RAM_GB");
 $ram <= $MEMORY or err("Set --ram to $ram but machine only has $MEMORY GB");
@@ -156,10 +157,12 @@ $namefmt =~ m/%\d+d/ or err("--namefmt must have a %d placeholder for the contig
 exists $ASSEMBLER{$assembler} or err("Invalid --assembler '$assembler'");
 
 if (length($R1) && length($R2)) {
-    -r $R1 or err("Can't read --R1 $R1");
-    -r $R2 or err("Can't read --R2 $R2");
+  -r abs_path($R1) or err("Can't read --R1 $R1");
+  -r abs_path($R2) or err("Can't read --R2 $R2");
+  $R1 = abs_path($R1);
+  $R2 = abs_path($R2);
 } elsif (length($R1) || length($R2)) {
-    err("--R1 and --R2 must be used together");
+  err("--R1 and --R2 must be used together");
 }
 
 # Setup Minimap2 CPUs (it adds 1 to given value, so let's substract 1)
@@ -333,7 +336,7 @@ unless ($nopolish) {
     $polish_info .= "medaka:${medaka}x;";
   }
 
-  if (length($R1) && length($R2)) {
+  if ($pilon >= 1 && length($R1) && length($R2)) {
     # polish using short reads
     # quick clean using fastp
     make_folder("$asmdir/polish/short_reads");
@@ -345,25 +348,32 @@ unless ($nopolish) {
     # Polish using Pilon
     make_folder("$asmdir/polish/short_reads/pilon");
     my $pilon_dir = "$asmdir/polish/short_reads/pilon";
-    my $BAM = "$pilon_dir/dragonflye.bam";
     my $sort_ram = int($half_ram * 1024 / $sort_cpus); # RAM per thread, in Mb
 
-    # Create sorted BAM file
-    run_cmd("bwa index $POLISHED_FASTA", "bwa-index", "short read polishing - bwa-index");
-    run_cmd("samtools faidx $POLISHED_FASTA", "faidx", "short read polishing - faidx");
-    run_cmd("(bwa mem -v 3 -x intractg -t $cpus $POLISHED_FASTA $polish_dir/R1.fq.gz $polish_dir/R2.fq.gz"
+    msg("Polishing with Medaka ($pilon rounds)");
+    for (my $i = 1; $i <= $pilon; $i++) {
+      my $round_dir = "$pilon_dir/$i";
+      my $BAM = "$round_dir/pilon-$i.bam";
+      make_folder("$round_dir");
+
+      # Create sorted BAM file
+      run_cmd("bwa index $POLISHED_FASTA", "bwa-index", "short read polishing - bwa-index ($i of $pilon)");
+      run_cmd("samtools faidx $POLISHED_FASTA", "faidx", "short read polishing - faidx ($i of $pilon)");
+      run_cmd("(bwa mem -v 3 -x intractg -t $cpus $POLISHED_FASTA $polish_dir/R1.fq.gz $polish_dir/R2.fq.gz"
           ." | samclip --ref ${POLISHED_FASTA}.fai"
           ." | samtools sort --threads $sort_cpus -m ${sort_ram}m"
-          ." --reference $POLISHED_FASTA -T $tmpdir -o $BAM)", "short read polishing - bwa+samtools-sort");
-    run_cmd("samtools index $BAM", "short read polishing - samtools-index");
+          ." --reference $POLISHED_FASTA -T $tmpdir -o $BAM)", "short read polishing - bwa+samtools-sort ($i of $pilon)");
+      run_cmd("samtools index $BAM", "short read polishing - samtools-index ($i of $pilon)");
 
-    msg("Polishing with Pilon");
-    run_cmd("pilon --genome $POLISHED_FASTA --frags $BAM --minmq $MIN_MQ --minqual $MIN_BQ"
-          ." --fix bases --outdir $pilon_dir --output pilon --threads $cpus --changes --mindepth 0.25", "short read polishing - pilon");
+      msg("Polishing with Pilon");
+      run_cmd("pilon --genome $POLISHED_FASTA --frags $BAM --minmq $MIN_MQ --minqual $MIN_BQ"
+          ." --fix bases --outdir $round_dir --output pilon --threads $cpus --changes --mindepth 0.25", "short read polishing - pilon ($i of $pilon)");
 
-    $POLISHED_FASTA = "$pilon_dir/pilon.fasta";
-    $polish_info .= "pilon:short_reads;";
+      $POLISHED_FASTA = "$round_dir/pilon.fasta";
+    }
+
     $has_polished = 1;
+    $polish_info .= "pilon:short_reads;";
   }
 
   copy($POLISHED_FASTA, $asm);
@@ -644,7 +654,7 @@ sub run_cmd {
 
   $cmd .= " | sed 's/^/$label/' | tee -a $LOGFILE";
   msg("Running: $cmd");
-  system($cmd)==0 or err("Error $? running command: $!");
+  system("bash -o pipefail -c \"$cmd\"")==0 or err("Error running command: $cmd");
 }
 
 #----------------------------------------------------------------------
@@ -835,6 +845,7 @@ sub setOptions {
     {OPT=>"model=s",      VAR=>\$model,       DEFAULT=>'',   DESC=>"The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used)"},
     {OPT=>"list_models!", VAR=>\$list_models, DEFAULT=>0,    DESC=>"List the models available to Medaka"},
     "SHORT-READ POLISHER",
+    {OPT=>"pilon=i",    VAR=>\$pilon,     DEFAULT=>1,    DESC=>"Number of polishing rounds to conduct with Pilon (requires --R1 and --R2)"},
     {OPT=>"R1=s",       VAR=>\$R1,        DEFAULT=>'',   DESC=>"Read 1 FASTQ to use for polishing"},
     {OPT=>"R2=s",       VAR=>\$R2,        DEFAULT=>'',   DESC=>"Read 2 FASTQ to use for polishing"},
     "MODULES",
