@@ -126,6 +126,7 @@ POLISHER
   --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
   --list_models   List the models available to Medaka (default: OFF)
 SHORT-READ POLISHER
+  --pilon N       Number of polishing rounds to conduct with Pilon (requires --R1 and --R2) (default: 1)
   --R1 XXX        Read 1 FASTQ to use for polishing (default: '')
   --R2 XXX        Read 2 FASTQ to use for polishing (default: '')
 MODULES
@@ -191,9 +192,10 @@ A valid basecaller model must be provided with `--model`. If a valid model is pr
 
 This will list all basecaller models that are avialable in Medaka.
 
-### --R1 & --R2
+### --pilon & --R1 & --R2
 
-If Illumina short-reads are provided, polishing will be done with Pilon.
+If Illumina short-reads are provided, polishing will be done with Pilon. The value of `--pilon` (Default 1) is the number
+of polishing rounds that will be conducted.
 
 ### Choosing which stages to use
 
