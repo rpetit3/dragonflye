@@ -216,7 +216,6 @@ unless ($gsize) {
 }
 msg("Using genome size $gsize bp");
 
-
 # Estimate sequencing depth
 my $orig_depth = int( $stat->{'total_bp'} / $gsize );
 msg("Estimated sequencing depth: ${orig_depth}x");
@@ -255,8 +254,14 @@ else {
   run_cmd("ln -sf \Q$READS\E READS.fq.gz 2>&1");
 }
 
+# Update read stats
+my $FINAL_READS = "READS.fq.gz";
+msg("Collecting qc'd read statistics with 'seqtk'");
+my $final_stat = read_stats($FINAL_READS);
+map { msg("Final Read stats: $_ = ".$final_stat->{$_}) } (keys %$final_stat);
+
 # Calculating read length distribution
-my $RLEN = $stat->{'avg_len'};
+my $RLEN = $final_stat->{'avg_len'};
 msg("Average read length looks like $RLEN bp");
 unless ($minlen) {
   $minlen = int( $RLEN / 2);
@@ -265,7 +270,6 @@ unless ($minlen) {
 
 # Running the assembler engine of chouce
 msg("Assembling reads with '$assembler'");
-my $FINAL_READS = "READS.fq.gz";
 my $asm = "$assembler.fasta";  # assembler result file to process further
 my $asmdir = $assembler;
 my $asminfo = "";
