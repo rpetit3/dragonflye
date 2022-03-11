@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.10 rpetit3/dragonflye "Hine’s emerald" - 2022/03/10
+
+* use QC'd reads for final average read length check
+
 ## v1.0.9 rpetit3/dragonflye "Ebony jewelwing" - 2022/03/08
 
 * add short read polishing via Pilon
