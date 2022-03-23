@@ -37,7 +37,7 @@ jobs:
       - name: Setup dragonflye Environment
         run: |
           conda install -y -c conda-forge -c bioconda mamba 'python=3.8.0'
-          mamba install -y -c conda-forge -c bioconda 'assembly-scan>=0.4.0' any2fasta bwa fastp flye 'kmc>=3.1' 'medaka>=1.5.0' miniasm 'nanoq>=0.8.1' perl perl-file-spec perl-findbin pilon pigz racon rasusa raven-assembler samtools samclip seqtk porechop tensorflow-gpu
+          mamba install -y -c conda-forge -c bioconda 'assembly-scan>=0.4.0' any2fasta bwa fastp flye 'kmc>=3.1' 'medaka>=1.5.0' miniasm 'nanoq>=0.8.1' perl perl-file-spec perl-findbin polypolish pilon pigz racon rasusa raven-assembler samtools samclip seqtk porechop tensorflow-gpu
 
       - name: Environment Information
         run: uname -a && env
@@ -88,10 +88,15 @@ jobs:
           echo "Testing Flye Assembler + Racon & Medaka Polish"
           bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --outdir tests/raven-both --gsize 300000 --assembler raven
 
-      - name: Test Raven Assembler + Racon & Pilon Polish
+      - name: Test Raven Assembler + Racon & Polypolish Polish
         run: |
-          echo "Testing Flye Assembler + Racon & Pilon Polish"
-          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --R1 bactopia-tests/data/species/portiera/illumina/SRR2838702_R1.fastq.gz --R2 bactopia-tests/data/species/portiera/illumina/SRR2838702_R2.fastq.gz --cpus 0 --outdir tests/raven-pilon --gsize 300000 --assembler raven
+          echo "Testing Flye Assembler + Racon & Polypolish Polish"
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --R1 bactopia-tests/data/species/portiera/illumina/SRR2838702_R1.fastq.gz --R2 bactopia-tests/data/species/portiera/illumina/SRR2838702_R2.fastq.gz --cpus 0 --outdir tests/raven-polypolish --gsize 300000 --assembler raven
+
+      - name: Test Raven Assembler + Racon & Polypolish Pilon
+        run: |
+          echo "Testing Flye Assembler + Racon & Polypolish Polish"
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --R1 bactopia-tests/data/species/portiera/illumina/SRR2838702_R1.fastq.gz --R2 bactopia-tests/data/species/portiera/illumina/SRR2838702_R2.fastq.gz --cpus 0 --outdir tests/raven-pilon --gsize 300000 --assembler raven --polypolish 0 --pilon 1
 
       - name: Test Flye Assembler
         run: |

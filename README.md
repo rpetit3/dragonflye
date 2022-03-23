@@ -46,7 +46,7 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 4. Remove adapters (requires `--trim` be given) ([Porechop](https://github.com/rrwick/Porechop))
 5. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm](https://github.com/lh3/miniasm), or [Raven](https://github.com/lbcb-sci/raven)
 6. Polish assembly with [Racon](https://github.com/isovic/racon) and/or [Medaka](https://github.com/nanoporetech/medaka)
-7. Polish assembly with short reads via [Pilon](https://github.com/broadinstitute/pilon)
+7. Polish assembly with short reads via {Polypolish](https://github.com/rrwick/Polypolish) and/or [Pilon](https://github.com/broadinstitute/pilon)
 8. Remove contigs that are too short, too low coverage, or pure homopolymers
 9. Produce final FASTA with nicer names and parsable annotations
 10. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
@@ -260,79 +260,83 @@ I would like to personally extend my many thanks and gratitude to the authors of
 
 * __[any2fasta](https://github.com/tseemann/any2fasta)__  
 Convert various sequence formats to FASTA  
-_Seemann, T. [any2fasta: Convert various sequence formats to FASTA](https://github.com/tseemann/any2fasta)._  
+_Seemann, T [any2fasta: Convert various sequence formats to FASTA](https://github.com/tseemann/any2fasta)._  
 
 * __[assembly-scan](https://github.com/rpetit3/assembly-scan)__  
 Generate basic stats for an assembly.  
-_Petit III, R. A. [assembly-scan: generate basic stats for an assembly](https://github.com/rpetit3/assembly-scan)._  
+_Petit III, RA [assembly-scan: generate basic stats for an assembly](https://github.com/rpetit3/assembly-scan)._  
 
 * __[BWA](https://github.com/lh3/bwa/)__  
 Burrow-Wheeler Aligner for short-read alignment  
-Li H [Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM](http://arxiv.org/abs/1303.3997). _arXiv_ [q-bio.GN] (2013)  
+_Li, H [Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM](http://arxiv.org/abs/1303.3997). arXiv [q-bio.GN] (2013)_  
 
 * __[fastp](https://github.com/OpenGene/fastp)__  
 An ultra-fast all-in-one FASTQ preprocessor (QC/adapters/trimming/filtering/splitting/merging...)  
-_Chen, S., Zhou, Y., Chen, Y., Gu, J., [fastp: an ultra-fast all-in-one FASTQ preprocessor](https://doi.org/10.1093/bioinformatics/bty560), Bioinformatics, Volume 34, Issue 17 (2018)_  
+_Chen, S, Zhou, Y, Chen, Y, Gu, J, [fastp: an ultra-fast all-in-one FASTQ preprocessor](https://doi.org/10.1093/bioinformatics/bty560), Bioinformatics, Volume 34, Issue 17 (2018)_  
 
 * __[Flye](https://github.com/fenderglass/Flye)__  
 De novo assembler for single molecule sequencing reads using repeat graphs  
-_Kolmogorov, M., Yuan, J., Lin, Y, Pevzner, P., [Assembly of Long Error-Prone Reads Using Repeat Graphs](https://doi.org/10.1038/s41587-019-0072-8), Nature Biotechnology, (2019)_  
+_Kolmogorov, M, Yuan, J, Lin, Y, Pevzner, P, [Assembly of Long Error-Prone Reads Using Repeat Graphs](https://doi.org/10.1038/s41587-019-0072-8), Nature Biotechnology, (2019)_  
 
 * __[KMC](https://github.com/refresh-bio/KMC)__  
 Fast and frugal disk based k-mer counter  
-_Deorowicz, S., Kokot, M., Grabowski, Sz., Debudaj-Grabysz, A., [KMC 2: Fast and resource-frugal k-mer counting](https://doi.org/10.1093/bioinformatics/btv022), Bioinformatics, 2015; 31(10):1569–1576_  
+_Deorowicz, S, Kokot, M, Grabowski, Sz, Debudaj-Grabysz, A, [KMC 2: Fast and resource-frugal k-mer counting](https://doi.org/10.1093/bioinformatics/btv022), Bioinformatics, 2015; 31(10):1569–1576_  
 
 * __[Medaka](https://github.com/nanoporetech/medaka)__  
 Sequence correction provided by ONT Research  
-_Li, H. [Medaka: Sequence correction provided by ONT Research](https://github.com/nanoporetech/medaka)_  
+_Li, H [Medaka: Sequence correction provided by ONT Research](https://github.com/nanoporetech/medaka)_  
 
 * __[Miniasm](https://github.com/lh3/miniasm)__  
 Ultrafast de novo assembly for long noisy reads (though having no consensus step)  
-_Li, H. [Miniasm: Ultrafast de novo assembly for long noisy reads](https://github.com/lh3/miniasm)_  
+_Li, H [Miniasm: Ultrafast de novo assembly for long noisy reads](https://github.com/lh3/miniasm)_  
 
 * __[Minimap2](https://github.com/lh3/minimap2)__  
 A versatile pairwise aligner for genomic and spliced nucleotide sequences  
-_Li, H. [Minimap2: pairwise alignment for nucleotide sequences.](https://doi.org/10.1093/bioinformatics/bty191) Bioinformatics, 34:3094-3100. (2018)_  
+_Li, H [Minimap2: pairwise alignment for nucleotide sequences.](https://doi.org/10.1093/bioinformatics/bty191) Bioinformatics, 34:3094-3100. (2018)_  
 
 * __[Nanoq](https://github.com/esteinig/nanoq)__  
 Minimal but speedy quality control for nanopore reads in Rus  
-_Steinig, E. [Nanoq: Minimal but speedy quality control for nanopore reads in Rus](https://github.com/esteinig/nanoq)_  
+_Steinig, E [Nanoq: Minimal but speedy quality control for nanopore reads in Rus](https://github.com/esteinig/nanoq)_  
 
 * __[Pigz](https://zlib.net/pigz/)__  
 A parallel implementation of gzip for modern multi-processor, multi-core machines.  
-_Adler, M. [pigz: A parallel implementation of gzip for modern multi-processor, multi-core machines.](https://zlib.net/pigz/) Jet Propulsion Laboratory (2015)._  
+_Adler, M [pigz: A parallel implementation of gzip for modern multi-processor, multi-core machines.](https://zlib.net/pigz/) Jet Propulsion Laboratory (2015)._  
 
 * __[Pilon](https://github.com/broadinstitute/pilon/)__  
 An automated genome assembly improvement and variant detection tool  
-Walker BJ, Abeel T,  Shea T, Priest M, Abouelliel A, Sakthikumar S, Cuomo CA, Zeng Q, Wortman J, Young SK, Earl AM [Pilon: an integrated tool for comprehensive microbial variant detection and genome assembly improvement.](https://doi.org/10.1371/journal.pone.0112963) _PloS one_ 9.11 e112963 (2014)  
+_Walker, BJ, Abeel, T,  Shea, T, Priest, M, Abouelliel, A, Sakthikumar, S, Cuomo, CA, Zeng, Q, Wortman, J, Young, SK, Earl, AM, [Pilon: an integrated tool for comprehensive microbial variant detection and genome assembly improvement.](https://doi.org/10.1371/journal.pone.0112963) PloS one 9.11 e112963 (2014)_  
+
+* __[Polypolish](https://github.com/rrwick/Polypolish)__  
+A short-read polishing tool for long-read assemblies  
+_Wick, RR, Holt, KE, [Polypolish: Short-read polishing of long-read bacterial genome assemblies.](https://doi.org/10.1371/journal.pcbi.1009802) PLoS Computational Biology, 18(1), e1009802. (2022)_  
 
 * __[Porechop](https://github.com/rrwick/Porechop)__  
 Adapter trimmer for Oxford Nanopore reads  
-_Wick RR, Judd LM, Gorrie CL, Holt KE. [Completing bacterial genome assemblies with multiplex MinION sequencing.](https://doi.org/10.1099/mgen.0.000132) Microb Genom. 3(10):e000132 (2017)_  
+_Wick, RR, Judd, LM, Gorrie, CL, Holt, KE, [Completing bacterial genome assemblies with multiplex MinION sequencing.](https://doi.org/10.1099/mgen.0.000132) Microb Genom. 3(10):e000132 (2017)_  
   
 * __[Racon](https://github.com/lbcb-sci/racon)__  
 Ultrafast consensus module for raw de novo genome assembly of long uncorrected reads  
-_R. Vaser, I. Sović, N. Nagarajan, M. Šikić, [Fast and accurate de novo genome assembly from long uncorrected reads.](http://dx.doi.org/10.1101/gr.214270.116) Genome Res. 27, 737–746 (2017)._  
+_Vaser, R, Sović, I, Nagarajan, N, Šikić, M, [Fast and accurate de novo genome assembly from long uncorrected reads.](http://dx.doi.org/10.1101/gr.214270.116) Genome Res. 27, 737–746 (2017)._  
 
 * __[Rasusa](https://github.com/mbhall88/rasusa)__  
 Randomly subsample sequencing reads to a specified coverage  
-_Hall, M.B. [Rasusa: Randomly subsample sequencing reads to a specified coverage.](https://doi.org/10.5281/zenodo.3731394) (2019)._  
+_Hall, MB [Rasusa: Randomly subsample sequencing reads to a specified coverage.](https://doi.org/10.5281/zenodo.3731394) (2019)._  
 
 * __[Raven](https://github.com/lbcb-sci/raven)__  
 De novo genome assembler for long uncorrected reads  
-_Vaser, R., Šikić, M. [Time- and memory-efficient genome assembly with Raven.](https://doi.org/10.1038/s43588-021-00073-4) Nat Comput Sci 1, 332–336 (2021)._  
+_Vaser, R, Šikić, M [Time- and memory-efficient genome assembly with Raven.](https://doi.org/10.1038/s43588-021-00073-4) Nat Comput Sci 1, 332–336 (2021)._  
 
 * __[samclip](https://github.com/tseemann/samclip)__  
 Filter SAM file for soft and hard clipped alignments  
-Seemann T [Samclip: Filter SAM file for soft and hard clipped alignments](https://github.com/tseemann/samclip) (GitHub)  
+_Seemann, T [Samclip: Filter SAM file for soft and hard clipped alignments](https://github.com/tseemann/samclip) (GitHub)_  
   
 * __[Samtools](https://github.com/samtools/samtools)__  
 Tools for manipulating next-generation sequencing data  
-Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R [The Sequence Alignment/Map format and SAMtools](http://dx.doi.org/10.1093/bioinformatics/btp352). _Bioinformatics_ 25, 2078–2079 (2009)  
+_Li, H, Handsaker, B, Wysoker, A, Fennell, T, Ruan, J, Homer, N, Marth, G, Abecasis, G, Durbin, R [The Sequence Alignment/Map format and SAMtools](http://dx.doi.org/10.1093/bioinformatics/btp352). Bioinformatics 25, 2078–2079 (2009)_  
 
 * __[Seqtk](https://github.com/lh3/seqtk)__  
 A fast and lightweight tool for processing sequences in the FASTA or FASTQ format.  
-_Li, H. [Seqtk: Toolkit for processing sequences in FASTA/Q formats](https://github.com/lh3/seqtk)_  
+_Li, H [Seqtk: Toolkit for processing sequences in FASTA/Q formats](https://github.com/lh3/seqtk)_  
 
 ## Author
 
