@@ -190,10 +190,10 @@ A valid basecaller model must be provided with `--model`. If a valid model is pr
 
 This will list all basecaller models that are avialable in Medaka.
 
-### --pilon & --R1 & --R2
+### --polypolish & --pilon & --R1 & --R2
 
-If Illumina short-reads are provided, polishing will be done with Pilon. The value of `--pilon` (Default 1) is the number
-of polishing rounds that will be conducted.
+If Illumina short-reads are provided, polishing will be done with Polypolish and/or Pilon. The value of `--polypolish` (Default 1) is the number
+of polishing rounds that will be conducted. By default Pilon is turned off.
 
 ### Choosing which stages to use
 
