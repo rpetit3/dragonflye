@@ -46,7 +46,7 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 4. Remove adapters (requires `--trim` be given) ([Porechop](https://github.com/rrwick/Porechop))
 5. Assemble with [Flye](https://github.com/fenderglass/Flye), [Miniasm](https://github.com/lh3/miniasm), or [Raven](https://github.com/lbcb-sci/raven)
 6. Polish assembly with [Racon](https://github.com/isovic/racon) and/or [Medaka](https://github.com/nanoporetech/medaka)
-7. Polish assembly with short reads via {Polypolish](https://github.com/rrwick/Polypolish) and/or [Pilon](https://github.com/broadinstitute/pilon)
+7. Polish assembly with short reads via [Polypolish](https://github.com/rrwick/Polypolish) and/or [Pilon](https://github.com/broadinstitute/pilon)
 8. Remove contigs that are too short, too low coverage, or pure homopolymers
 9. Produce final FASTA with nicer names and parsable annotations
 10. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
