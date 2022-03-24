@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.11 rpetit3/dragonflye "Flame skimmer" - 2022/03/23
+
+* add short reading polishing with Polypolish
+
 ## v1.0.10 rpetit3/dragonflye "Hine’s emerald" - 2022/03/10
 
 * use QC'd reads for final average read length check
