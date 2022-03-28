@@ -29,6 +29,7 @@
 # ASSEMBLER
 #   --assembler XXX Assembler: miniasm flye raven (default: 'flye')
 #   --opts XXX      Extra assembler options in quotes eg. flye: '--interations' (default: '')
+#   --nanohq        For Flye, use '--nano-hq' instead of --nano-raw (default: OFF)
 # POLISHER
 #   --racon N       Number of polishing rounds to conduct with Racon (default: 1)
 #   --medaka N      Number of polishing rounds to conduct with Medaka (requires --model) (default: 0)
@@ -60,7 +61,7 @@ use POSIX qw(strftime);
 
 # Globals
 my $EXE = basename($PROGRAM_NAME);
-my $VERSION = "1.0.11";
+my $VERSION = "1.0.12";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
 my $APPDIR = abs_path( "$FindBin::RealBin/.." );
@@ -106,9 +107,9 @@ my $MEMORY = avail_ram_gb();
 # Options
 my(@Options, $version,
     $outdir, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
-    $kmers, $gsize, $READS, $assembler, $opts, $ram, $depth,
-    $model, $list_models, $racon, $medaka, $R1, $R2, $pilon,
-    $polypolish, $nofilter, $trim, $trimopts, $nopolish,
+    $kmers, $gsize, $READS, $assembler, $opts, $nanohq, $ram,
+    $depth, $model, $list_models, $racon, $medaka, $R1, $R2,
+    $pilon, $polypolish, $nofilter, $trim, $trimopts, $nopolish,
     $minreadlen, $minquality, $minlen, $mincov, $seed);
 setOptions();
 
@@ -281,7 +282,7 @@ remove_tree($asmdir) if -d $asmdir;
 
 if ($assembler eq 'flye') {
   # https://github.com/fenderglass/Flye/blob/flye/docs/USAGE.md#-quick-usage
-  my $read_type = "--nano-raw";
+  my $read_type = $nanohq ? "--nano-hq" : "--nano-raw";
   # set polish rounds to 0 (-i 0)
   run_cmd("flye $read_type $FINAL_READS -g $gsize -i 0 --threads $cpus -o $asmdir $opts 2>&1", "flye");
   copy("$asmdir/assembly.fasta", $asm);
@@ -873,6 +874,7 @@ sub setOptions {
     "ASSEMBLER",
     {OPT=>"assembler=s",VAR=>\$assembler, DEFAULT=>$ENV{DRAGONFLYE_ASSEMBLER} || 'flye', DESC=>"Assembler: ".join(' ', keys %ASSEMBLER) },
     {OPT=>"opts=s",     VAR=>\$opts,      DEFAULT=>'',   DESC=>"Extra assembler options in quotes eg. flye: '--interations'"},
+    {OPT=>"nanohq!",    VAR=>\$nanohq,    DEFAULT=>0,    DESC=>"For Flye, use '--nano-hq' instead of --nano-raw"},
     "POLISHER",
     {OPT=>"racon=i",      VAR=>\$racon,       DEFAULT=>1,    DESC=>"Number of polishing rounds to conduct with Racon"},
     {OPT=>"medaka=i",     VAR=>\$medaka,      DEFAULT=>0,    DESC=>"Number of polishing rounds to conduct with Medaka (requires --model)"},

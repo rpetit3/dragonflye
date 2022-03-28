@@ -118,13 +118,15 @@ RESOURCES
 ASSEMBLER
   --assembler XXX Assembler: raven miniasm flye (default: 'flye')
   --opts XXX      Extra assembler options in quotes eg. flye: '--interations' (default: '')
+  --nanohq        For Flye, use '--nano-hq' instead of --nano-raw (default: OFF)
 POLISHER
   --racon N       Number of polishing rounds to conduct with Racon (default: 1)
   --medaka N      Number of polishing rounds to conduct with Medaka (requires --model) (default: 0)
   --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
   --list_models   List the models available to Medaka (default: OFF)
 SHORT-READ POLISHER
-  --pilon N       Number of polishing rounds to conduct with Pilon (requires --R1 and --R2) (default: 1)
+  --polypolish N  Number of polishing rounds to conduct with Polypolish (requires --R1 and --R2) (default: 1)
+  --pilon N       Number of polishing rounds to conduct with Pilon (requires --R1 and --R2) (default: 0)
   --R1 XXX        Read 1 FASTQ to use for polishing (default: '')
   --R2 XXX        Read 2 FASTQ to use for polishing (default: '')
 MODULES
