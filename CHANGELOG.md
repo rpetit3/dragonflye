@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.13 rpetit3/dragonflye "Great Blue skimmer" - 2022/03/28
+## v1.0.13 rpetit3/dragonflye "Four-spotted chaser" - 2022/06/08
 
 * add `--medaka_opts` to allow fine tuning Medaka options
 
