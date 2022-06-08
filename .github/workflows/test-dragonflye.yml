@@ -83,6 +83,11 @@ jobs:
           echo "Testing Flye Assembler + Medaka Polish"
           bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --outdir tests/raven-medaka --gsize 300000 --assembler raven --racon 0 --model r103_min_high_g345
 
+      - name: Test Raven Assembler + Medaka Polish + --medaka_opts
+        run: |
+          echo "Testing Flye Assembler + Medaka Polish"
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --outdir tests/raven-medaka --gsize 300000 --assembler raven --racon 0 --model r103_min_high_g345 --medaka_opts '-b 200'
+
       - name: Test Raven Assembler + Racon & Medaka Polish
         run: |
           echo "Testing Flye Assembler + Racon & Medaka Polish"

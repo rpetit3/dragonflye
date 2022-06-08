@@ -33,6 +33,7 @@
 # POLISHER
 #   --racon N       Number of polishing rounds to conduct with Racon (default: 1)
 #   --medaka N      Number of polishing rounds to conduct with Medaka (requires --model) (default: 0)
+#   --medaka_opts XXX Extra Medaka options in quotes eg. '-b 100' (default: '')
 #   --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
 #   --list_models   List the models available to Medaka (default: OFF)
 # SHORT-READ POLISHER
@@ -61,7 +62,7 @@ use POSIX qw(strftime);
 
 # Globals
 my $EXE = basename($PROGRAM_NAME);
-my $VERSION = "1.0.12";
+my $VERSION = "1.0.13";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
 my $APPDIR = abs_path( "$FindBin::RealBin/.." );
@@ -108,9 +109,9 @@ my $MEMORY = avail_ram_gb();
 my(@Options, $version,
     $outdir, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
     $kmers, $gsize, $READS, $assembler, $opts, $nanohq, $ram,
-    $depth, $model, $list_models, $racon, $medaka, $R1, $R2,
-    $pilon, $polypolish, $nofilter, $trim, $trimopts, $nopolish,
-    $minreadlen, $minquality, $minlen, $mincov, $seed);
+    $depth, $model, $list_models, $racon, $medaka, $medaka_opts,
+    $R1, $R2, $pilon, $polypolish, $nofilter, $trim, $trimopts,
+    $nopolish, $minreadlen, $minquality, $minlen, $mincov, $seed);
 setOptions();
 
 # Say hello
@@ -338,7 +339,7 @@ unless ($nopolish) {
     make_folder("$asmdir/polish/medaka");
     for (my $i = 1; $i <= $medaka; $i++) {
       my $polish_dir = "$asmdir/polish/medaka/$i";
-      run_cmd("medaka_consensus -i $FINAL_READS -d $POLISHED_FASTA -o $polish_dir -m $model -t $cpus 2>&1", "polishing - medaka ($i of $medaka)");
+      run_cmd("medaka_consensus -i $FINAL_READS -d $POLISHED_FASTA -o $polish_dir -m $model -t $cpus $medaka_opts 2>&1", "polishing - medaka ($i of $medaka)");
       $POLISHED_FASTA = "$polish_dir/consensus.fasta";
     }
     $has_polished = 1;
@@ -878,6 +879,7 @@ sub setOptions {
     "POLISHER",
     {OPT=>"racon=i",      VAR=>\$racon,       DEFAULT=>1,    DESC=>"Number of polishing rounds to conduct with Racon"},
     {OPT=>"medaka=i",     VAR=>\$medaka,      DEFAULT=>0,    DESC=>"Number of polishing rounds to conduct with Medaka (requires --model)"},
+    {OPT=>"medaka_opts=s",VAR=>\$medaka_opts, DEFAULT=>'',   DESC=>"Extra Medaka options in quotes eg. '-b 100'"},
     {OPT=>"model=s",      VAR=>\$model,       DEFAULT=>'',   DESC=>"The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used)"},
     {OPT=>"list_models!", VAR=>\$list_models, DEFAULT=>0,    DESC=>"List the models available to Medaka"},
     "SHORT-READ POLISHER",
