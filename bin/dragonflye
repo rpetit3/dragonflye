@@ -489,7 +489,7 @@ my $delta = sprintf "%+.2f", (100.0*($nbases-$gsize)/$gsize);
 msg("Assembly is $nbases, estimated genome size was $gsize ($delta%)");
 msg("It contains $ncontigs (min=$minlen) contigs totalling $nbases bp.");
 msg("Getting more stats now...");
-run_cmd("assembly-scan --transpose contigs.fa 2>&1", "stats");
+run_cmd("assembly-scan --transpose ${prefix}.fa 2>&1", "stats");
 
 my $graph = '';
 for my $f ('assembly_graph_with_scaffolds.gfa', 'assembly_graph.gfa', 'contigs.fastg', 'contigs.LastGraph') {
