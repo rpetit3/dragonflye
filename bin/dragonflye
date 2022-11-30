@@ -17,6 +17,7 @@
 #   --gsize XXX     Estimated genome size eg. 3.2M <blank=AUTODETECT> (default: '')
 # OUTPUT
 #   --outdir XXX    Output folder (default: '')
+#   --prefix XXX    Prefix to use for final assembly FASTA (default: contigs)
 #   --force         Force overwite of existing output folder (default: OFF)
 #   --minlen N      Minimum contig length <0=AUTO> (default: 500)
 #   --mincov n.nn   Minimum contig coverage <0=AUTO> (default: 2)
@@ -107,7 +108,7 @@ my $MEMORY = avail_ram_gb();
 
 # Options
 my(@Options, $version,
-    $outdir, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
+    $outdir, $prefix, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
     $kmers, $gsize, $READS, $assembler, $opts, $nanohq, $ram,
     $depth, $model, $list_models, $racon, $medaka, $medaka_opts,
     $R1, $R2, $pilon, $polypolish, $nofilter, $trim, $trimopts,
@@ -483,7 +484,7 @@ for my $id (sort { $len{$b} <=> $len{$a} } keys %{$seq}) {
     delete $seq->{$id};
   }
 }
-write_fasta("contigs.fa", $seq);
+write_fasta("${prefix}.fa", $seq);
 my $delta = sprintf "%+.2f", (100.0*($nbases-$gsize)/$gsize);
 msg("Assembly is $nbases, estimated genome size was $gsize ($delta%)");
 msg("It contains $ncontigs (min=$minlen) contigs totalling $nbases bp.");
@@ -863,6 +864,7 @@ sub setOptions {
     {OPT=>"gsize=s",      VAR=>\$gsize,      DEFAULT=>'',   DESC=>"Estimated genome size eg. 3.2M <blank=AUTODETECT>"},
     "OUTPUT",
     {OPT=>"outdir=s",   VAR=>\$outdir,    DEFAULT=>'',   DESC=>"Output folder"},
+    {OPT=>"prefix=s",   VAR=>\$prefix,    DEFAULT=>'contigs', DESC=>"Prefix to use for final assembly FASTA"},
     {OPT=>"force!",     VAR=>\$force,     DEFAULT=>0,    DESC=>"Force overwite of existing output folder"},
     {OPT=>"minlen=i",   VAR=>\$minlen,    DEFAULT=>500,  DESC=>"Minimum contig length <0=AUTO>"},
     {OPT=>"mincov=f",   VAR=>\$mincov,    DEFAULT=>2,    DESC=>"Minimum contig coverage <0=AUTO>"},
