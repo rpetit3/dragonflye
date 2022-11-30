@@ -526,7 +526,7 @@ msg("Walltime used: $mins min $secs sec");
 
 msg("Results in: $outdir");
 msg("Final assembly graph: $outdir/$graph") if $graph;
-msg("Final assembly contigs: $outdir/contigs.fa");
+msg("Final assembly contigs: $outdir/${prefix}.fa");
 
 # Inspiration
 my @motd = (
