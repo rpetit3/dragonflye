@@ -377,7 +377,7 @@ unless ($nopolish) {
             run_cmd("samtools index $BAM", "short read polishing - samtools-index ($i of $pilon)");
 
             msg("Polishing with Pilon");
-            run_cmd("pilon -Xms${half_ram}g -Xmx${ram}g --genome $POLISHED_FASTA --frags $BAM --minmq $MIN_MQ --minqual $MIN_BQ"
+            run_cmd("pilon -Xms${half_ram}g -Xmx${ram_int}g --genome $POLISHED_FASTA --frags $BAM --minmq $MIN_MQ --minqual $MIN_BQ"
                 ." --fix bases --outdir $round_dir --output pilon --threads $cpus --changes --mindepth 0.25", "short read polishing - pilon ($i of $pilon)");
 
             $POLISHED_FASTA = "$round_dir/pilon.fasta";
