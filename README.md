@@ -106,6 +106,7 @@ INPUT
   --gsize XXX     Estimated genome size eg. 3.2M <blank=AUTODETECT> (default: '')
 OUTPUT
   --outdir XXX    Output folder (default: '')
+  --prefix XXX    Prefix to use for final assembly FASTA (default: 'contigs')
   --force         Force overwite of existing output folder (default: OFF)
   --minlen N      Minimum contig length <0=AUTO> (default: 500)
   --mincov n.nn   Minimum contig coverage <0=AUTO> (default: 2)

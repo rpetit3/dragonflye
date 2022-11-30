@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.14 rpetit3/dragonflye "Northern emerald" - 2022/11/30
+
+* add `--prefix` to change final output assembly name
+* Pilon JVM memory options now controlled by `--ram`
+
 ## v1.0.13 rpetit3/dragonflye "Four-spotted chaser" - 2022/06/08
 
 * add `--medaka_opts` to allow fine tuning Medaka options
