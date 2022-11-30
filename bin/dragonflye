@@ -63,7 +63,7 @@ use POSIX qw(strftime);
 
 # Globals
 my $EXE = basename($PROGRAM_NAME);
-my $VERSION = "1.0.13";
+my $VERSION = "1.0.14";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
 my $APPDIR = abs_path( "$FindBin::RealBin/.." );
@@ -484,6 +484,8 @@ for my $id (sort { $len{$b} <=> $len{$a} } keys %{$seq}) {
     delete $seq->{$id};
   }
 }
+
+msg("Writing final assembly file => '${prefix}.fa'");
 write_fasta("${prefix}.fa", $seq);
 my $delta = sprintf "%+.2f", (100.0*($nbases-$gsize)/$gsize);
 msg("Assembly is $nbases, estimated genome size was $gsize ($delta%)");
