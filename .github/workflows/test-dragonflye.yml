@@ -48,7 +48,7 @@ jobs:
       - name: Test Raven Assembler (quality filtered)
         run: |
           echo "Test Raven Assembler (quality filtered)"
-          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --nopolish --outdir tests/raven-minquality --gsize 300000 --assembler raven --minquality 8
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --prefix ERR3772599 --cpus 0 --nopolish --outdir tests/raven-minquality --gsize 300000 --assembler raven --minquality 8
 
       - name: Test Raven Assembler (quality filtered, no length filter)
         run: |
@@ -68,7 +68,7 @@ jobs:
       - name: Test Raven Assembler
         run: |
           echo "Testing Raven Assembler"
-          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --nopolish --depth 5 --outdir tests/raven --gsize 300000 --assembler raven
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --prefix ERR3772599-raven --cpus 0 --nopolish --depth 5 --outdir tests/raven --gsize 300000 --assembler raven
 
       - name: Test Raven Assembler + Racon Polish
         run: |
@@ -103,7 +103,7 @@ jobs:
       - name: Test Miniasm Assembler
         run: |
           echo "Testing Miniasm Assembler"
-          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 1 --nopolish --outdir tests/miniasm --gsize 300000 --assembler miniasm
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --prefix ERR3772599_mini.asm --cpus 1 --nopolish --outdir tests/miniasm --gsize 300000 --assembler miniasm
 
       - name: Test Flye Assembler
         run: |
@@ -113,7 +113,7 @@ jobs:
       - name: Test Flye Assembler (nanohq)
         run: |
           echo "Testing Flye Assembler (with --nano-hq)"
-          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --nopolish --outdir tests/flyehq --gsize 300000 --assembler flye --nanohq
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --prefix ERR3772599-nano.hq --cpus 0 --nopolish --outdir tests/flyehq --gsize 300000 --assembler flye --nanohq
 
       - name: Test --list_models
         run: |
