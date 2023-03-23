@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.0 rpetit3/dragonflye "Dragonhunter" - 2023/03/22
+
+* Improved documentation on `--ram`
+* Release to separate Dragonflye to `dragonflye` and `dragonflye-gpu` on Bioconda
+
 ## v1.0.14 rpetit3/dragonflye "Northern emerald" - 2022/11/30
 
 * add `--prefix` to change final output assembly name
