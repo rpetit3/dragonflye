@@ -123,4 +123,4 @@ jobs:
       - name: Test Raven Assembler + Medaka Polish + Model version dots
         run: |
           echo "Testing Flye Assembler + Medaka Polish"
-          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --outdir tests/raven-medaka-opts --gsize 300000 --assembler raven --racon 0 --model r1041_e82_400bps_sup_variant_v4.2.0
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --outdir tests/raven-medaka-version-dots --gsize 300000 --assembler raven --racon 0 --model r1041_e82_400bps_sup_variant_v4.2.0

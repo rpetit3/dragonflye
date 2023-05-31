@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.1 rpetit3/dragonflye "Azure damselfly" - 2023/05/??
+
+* fixed medaka model parsing to allow dots in model name
+
 ## v1.1.0 rpetit3/dragonflye "Dragonhunter" - 2023/03/22
 
 * Improved documentation on `--ram`
