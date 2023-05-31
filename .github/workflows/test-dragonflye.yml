@@ -34,7 +34,7 @@ jobs:
       - name: Setup dragonflye Environment
         run: |
           conda install -y -c conda-forge -c bioconda mamba 'python=3.8.0'
-          mamba install -y -c conda-forge -c bioconda 'assembly-scan>=0.4.0' any2fasta bwa fastp flye 'kmc>=3.1' 'medaka>=1.8.0' miniasm 'nanoq>=0.8.1' perl perl-file-spec perl-findbin polypolish pilon pigz racon rasusa raven-assembler samtools samclip seqtk porechop tensorflow-gpu
+          mamba install -y -c conda-forge -c bioconda 'assembly-scan>=0.4.0' any2fasta bwa fastp flye 'kmc>=3.1' 'medaka>=1.8.0' miniasm 'nanoq>=0.8.1' perl perl-file-spec perl-findbin polypolish pilon pigz racon rasusa raven-assembler samtools samclip seqtk porechop
 
       - name: Environment Information
         run: uname -a && env
