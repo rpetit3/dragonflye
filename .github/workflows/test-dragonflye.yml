@@ -34,7 +34,7 @@ jobs:
       - name: Setup dragonflye Environment
         run: |
           conda install -y -c conda-forge -c bioconda mamba 'python=3.8.0'
-          mamba install -y -c conda-forge -c bioconda 'assembly-scan>=0.4.0' any2fasta bwa fastp flye 'kmc>=3.1' 'medaka>=1.5.0' miniasm 'nanoq>=0.8.1' perl perl-file-spec perl-findbin polypolish pilon pigz racon rasusa raven-assembler samtools samclip seqtk porechop tensorflow-gpu
+          mamba install -y -c conda-forge -c bioconda 'assembly-scan>=0.4.0' any2fasta bwa fastp flye 'kmc>=3.1' 'medaka>=1.8.0' miniasm 'nanoq>=0.8.1' perl perl-file-spec perl-findbin polypolish pilon pigz racon rasusa raven-assembler samtools samclip seqtk porechop tensorflow-gpu
 
       - name: Environment Information
         run: uname -a && env
@@ -118,4 +118,9 @@ jobs:
       - name: Test --list_models
         run: |
           echo "Testing --list_models"
-          bin/dragonflye --list_models 2>&1 | grep r941_min_sup_g507
+          bin/dragonflye --list_models 2>&1 | grep r1041_e82_400bps_sup_variant_v4.2.0
+
+      - name: Test Raven Assembler + Medaka Polish + Model version dots
+        run: |
+          echo "Testing Flye Assembler + Medaka Polish"
+          bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --outdir tests/raven-medaka-opts --gsize 300000 --assembler raven --racon 0 --model r1041_e82_400bps_sup_variant_v4.2.0

@@ -585,10 +585,10 @@ sub available_models {
   else {
     msg("Generating a list of available Medaka models:");
   }
-  my ($available) = qx(medaka_consensus -h 2>&1 | grep Choices:);
+  my ($available) = qx(medaka tools list_models 2>&1 | grep Available:);
   chomp $available;
-  $available =~ s/\s+Choices: //g;
-  $available =~ s/\.//g;
+  $available =~ s/\s+Available: //g;
+  $available =~ s/,//g;
   my @models = split(' ', $available);
   foreach my $m (@models) {
     if ($model) {
