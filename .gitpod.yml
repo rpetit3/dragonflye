@@ -1,4 +1,4 @@
-image: nfcore/gitpod:latest
+image: condaforge/mambaforge:23.1.0-1
 
 tasks:
   - name: Initialize
