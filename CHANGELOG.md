@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.1.1 rpetit3/dragonflye "Azure damselfly" - 2023/05/??
+## v1.1.1 rpetit3/dragonflye "Azure damselfly" - 2023/05/31
 
 * fixed medaka model parsing to allow dots in model name
 
