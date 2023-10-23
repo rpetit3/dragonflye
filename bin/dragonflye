@@ -63,7 +63,7 @@ use POSIX qw(strftime);
 
 # Globals
 my $EXE = basename($PROGRAM_NAME);
-my $VERSION = "1.1.1";
+my $VERSION = "1.1.2";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
 my $APPDIR = abs_path( "$FindBin::RealBin/.." );
