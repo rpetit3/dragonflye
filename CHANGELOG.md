@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.0 rpetit3/dragonflye "" - 2023/11/??
+
+* add contig reorientation using dnaapler
+
 ## v1.1.2 rpetit3/dragonflye "Eastern amberwing" - 2023/10/23
 
 * minor changes to CI testing

@@ -49,7 +49,8 @@ Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quic
 7. Polish assembly with short reads via [Polypolish](https://github.com/rrwick/Polypolish) and/or [Pilon](https://github.com/broadinstitute/pilon)
 8. Remove contigs that are too short, too low coverage, or pure homopolymers
 9. Produce final FASTA with nicer names and parsable annotations
-10. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
+10. Reorient contigs from final FASTA using [dnaapler](https://github.com/gbouras13/dnaapler)
+11. Output parsable assembly statistics ([assembly-scan](https://github.com/rpetit3/assembly-scan))
 
 ## Quick Start
 
@@ -65,10 +66,16 @@ ls dragonflye/
 contigs.fa  contigs.gfa  dragonflye.log  flye-info.txt  flye.fasta
 
 head -n4 dragonfly/contigs.fa
->contig00001 len=4818942 cov=62.0 corr=0 origname=contig_1 sw=dragonflye-flye/0.0.1 date=20210720 circular=Y
-TTAATTTGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGC
-GCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTAAGGCC
-GCCAGGCAAATTCTGTTTTATCAGACCGCTTCTGCGTTCTGATTTAATCTGTATCAGGCT
+>contig00001 len=2753792 origname=Utg1024_LN:i:2753792_RC:i:486_XO:i:0 polish=none sw=dragonflye-raven/1.2.0 date=20231031
+TTCTATTTATCAGTATCATTACTTTTATATTATCGATAATTAATCCGAACATATCATTAA
+TCAAGTTATTATTCGAAGTGGTTTTGCTGCATTTGGAACAGTCGGGTTAAGTATGAACCT
+TACCACAGAAGATAATAATGGTATTACTAAAATAATTATTATATTCGTTATGCTTTGCGG
+
+head -n4 dragonfly/contigs.reoriented.fa
+>contig00001 len=2753792 origname=Utg1024_LN:i:2753792_RC:i:486_XO:i:0 polish=none sw=dragonflye-raven/1.2.0 date=20231031 rotated=True
+ATGTCGGAAAAAGAAATTTGGGAAAAGTGCTTGAAATTGCTCAAGAAAAATTATCAGCTG
+TAAGTTACTCAACTTTCCTAAAAGATGACGAGGCTTTACACGATTAAAGATGGTGAAGCT
+ATCGTATTATCGAGTATTCCTTTTAATGCAAATTGGTTAAATCAACAATATGCTGAAATT
 ```
 
 ## Installation
@@ -130,6 +137,10 @@ SHORT-READ POLISHER
   --pilon N       Number of polishing rounds to conduct with Pilon (requires --R1 and --R2) (default: 0)
   --R1 XXX        Read 1 FASTQ to use for polishing (default: '')
   --R2 XXX        Read 2 FASTQ to use for polishing (default: '')
+REORIENT
+  --noreorient    Disable contig reorientation using dnaapler (default: OFF)
+  --dnaapler_mode XXX The mode of reorientation to execute (default: 'all')
+  --dnaapler_opts XXX Extra dnaapler options in quotes eg. '--evalue 1e-5' (default: '')
 MODULES
   --trim          Enable adaptor trimming (default: OFF)
   --trimopts XXX  Extra porechop options in quotes eg. '--adapter_threshold 80' (default: '')
@@ -223,6 +234,8 @@ Variable | Option | Default
 Filename | Description
 ---------|------------
 `contigs.fa` | The final assembly you should use
+`contigs.reoriented.fa` | If available, a reorientation of the final assembly
+`contigs.dnaapler.summary.tsv` | If available, a summary description of reoriented contigs
 `contigs.gfa` | Assembly graph
 `dragonflye.log` | Full log file for bug reporting
 `flye.fasta` | Raw assembly (flye)
@@ -272,6 +285,10 @@ _Petit III, RA [assembly-scan: generate basic stats for an assembly](https://git
 * __[BWA](https://github.com/lh3/bwa/)__  
 Burrow-Wheeler Aligner for short-read alignment  
 _Li, H [Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM](http://arxiv.org/abs/1303.3997). arXiv [q-bio.GN] (2013)_  
+
+* __[dnaapler](https://github.com/gbouras13/dnaapler)__  
+Reorients assembled microbial sequences  
+_Bouras G [dnaapler: Reorients assembled microbial sequences ](https://github.com/gbouras13/dnaapler)_  
 
 * __[fastp](https://github.com/OpenGene/fastp)__  
 An ultra-fast all-in-one FASTQ preprocessor (QC/adapters/trimming/filtering/splitting/merging...)  

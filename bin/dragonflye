@@ -506,7 +506,7 @@ unless ($noreorient) {
     $files_found++;
   }
   if (-e "$asmdir/reorient/${prefix}_reoriented.fasta") {
-    run_cmd("mv $asmdir/reorient/${prefix}_reoriented.fasta ./${prefix}.reoriented.fa}");
+    run_cmd("mv $asmdir/reorient/${prefix}_reoriented.fasta ./${prefix}.reoriented.fa");
     $files_found++;
   }
 
