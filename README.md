@@ -251,7 +251,7 @@ Filename | Description
 
 * _Does `dragonflye` accept Illumina reads?_
 
-  No, this is strictly for Nanopore reads only. If you want to assemble Illumina reads, use [Shovill](https://github.com/tseemann/shovill).
+  It does, only if you would like to use them for short-read polishing. Otherwise, if you want to assemble just Illumina reads, use [Shovill](https://github.com/tseemann/shovill).
 
 * _Doesn't Trycycler already do this?_
 
@@ -259,10 +259,15 @@ Filename | Description
   get super high quality assemblies with some manual inspection steps in between, use Trycycler. But, if you are looking to just get a quick assembly
   that you can work with, that's what Dragonfly is for.
 
-* _Can I use my GPU during the Medaka step?_
+* _Can I assemble more than one genome at a time?_
 
-   Yes, you can! As of v1.0.8, `tensorflow-gpu` is included in the Bioconda recipe. This should allow you to use your GPU with Medaka. There
-   might be environment variables you have to set, to learn more please take a look here: [issues/7#issuecomment-1054693716]( https://github.com/rpetit3/dragonflye/issues/7#issuecomment-1054693716)
+  If you would like to assemble more than one genome using Dragonflye, I would recommend you do this with [Bactopia](https://bactopia.github.io/). Bactopia
+  will allow you to process a single genome or thousands, and it also includes many other bacterial genome analyses.
+
+* _Are there other similar pipelines?_
+
+  [hybracter](https://github.com/gbouras13/hybracter) is a similar alternative to Dragonflye. It is written in Snakemake and includes
+  many of the same analyses, with some fun additions by @gbouras13.
 
 ## Feedback
 
