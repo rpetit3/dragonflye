@@ -42,6 +42,10 @@
 #   --pilon N       Number of polishing rounds to conduct with Pilon (requires --R1 and --R2) (default: 0)
 #   --R1 XXX        Read 1 FASTQ to use for polishing (default: '')
 #   --R2 XXX        Read 2 FASTQ to use for polishing (default: '')
+# REORIENT
+#   --noreorient    Disable contig reorientation using dnaapler (default: OFF)
+#   --dnaapler_mode XXX The mode of reorientation to execute (default: 'all')
+#   --dnaapler_opts XXX Extra dnaapler options in quotes eg. '--evalue 1e-5' (default: '')
 # MODULES
 #   --trim          Enable adaptor trimming (default: OFF)
 #   --trimopts XXX  Extra porechop options in quotes eg. '--adapter_threshold 80' (default: '')
@@ -491,11 +495,24 @@ msg("Writing final assembly file => '${prefix}.fa'");
 write_fasta("${prefix}.fa", $seq);
 my $delta = sprintf "%+.2f", (100.0*($nbases-$gsize)/$gsize);
 
-
 unless ($noreorient) {
   msg("Reorienting contigs with dnaapler");
   make_folder("$asmdir/reorient");
+  # Allow dnaapler to fail, if fails it means it was unable to reorient
   run_cmd_with_fail("dnaapler $dnaapler_mode --input ${prefix}.fa --output $asmdir/reorient --threads $cpus --prefix ${prefix} --force $dnaapler_opts 2>&1", "dnaapler");
+  my $files_found = 0;
+  if (-e "$asmdir/reorient/${prefix}_all_reorientation_summary.tsv") {
+    run_cmd("mv $asmdir/reorient/${prefix}_all_reorientation_summary.tsv ./${prefix}.dnaapler.summary.tsv");
+    $files_found++;
+  }
+  if (-e "$asmdir/reorient/${prefix}_reoriented.fasta") {
+    run_cmd("mv $asmdir/reorient/${prefix}_reoriented.fasta ./${prefix}.reoriented.fa}");
+    $files_found++;
+  }
+
+  if ($files_found == 0) {
+    msg("Unable to reorient contigs with dnaapler");
+  }
 }
 else {
   msg("User supplied --noreorient, so will not reorient contigs.");
@@ -547,7 +564,17 @@ my @motd = (
   "Dragonfly facts were provided by the Smithsonian Magazine",
   "Dragonfly fossils have been found with wingspans up to two feet (61cm)!",
   "Dragonfly larva eat just about anything: tadpoles, mosquitoes, fish, other insect larvae and even each other! ",
+  "Dragonflies, which eat insects as adults, are a great control on the mosquito population, eating tens to hundreds per day",
+  "There are more than 5,000 known species of dragonflies",
+  "Theories suggest that high oxygen levels during the Paleozoic era allowed dragonflies to grow to monster size",
+  "Dragonflies catch their insect prey by grabbing it with their feet.",
+  "Dragonflies were some of the first winged insects to evolve, some 300 million years ago.",
   "Dragonflies are super accurate hunters (>90% capture rate), hopefully it inspires super accurate assemblies!",
+  "Dragonflies are expert fliers. They can fly straight up and down, hover like a helicopter and even mate mid-air.",
+  "Nearly all of the dragonfly’s head is eye, so they have incredible vision that encompasses almost every angle except right behind them.",
+  "Some adult dragonflies live for only a few weeks while others live up to a year.",
+  "A dragonfly called the globe skinner has the longest migration of any insect - 11,000 miles back and forth across the Indian Ocean.",
+  "Hundreds of dragonflies of different species will gather in swarms, either for feeding or migration.",
   "Remember, an assembly is just a _hypothesis_ of the original sequence! ~ Torsten Seemann",
   "Use Bandage to inspect the .gfa/.fastg assembly graph: https://rrwick.github.io/Bandage/",
   "Found a bug in $EXE? Post it at $URL/issues",
