@@ -63,7 +63,7 @@ use POSIX qw(strftime);
 
 # Globals
 my $EXE = basename($PROGRAM_NAME);
-my $VERSION = "1.1.2";
+my $VERSION = "1.2.0";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
 my $APPDIR = abs_path( "$FindBin::RealBin/.." );
@@ -83,6 +83,7 @@ my %VERSION = (
   'any2fasta'     => 'any2fasta -v 2>&1',
   'assembly-scan' => 'assembly-scan --version 2>&1',
   'bwa'           => 'bwa 2>&1 | grep Version:',
+  'dnaapler'      => 'dnaapler --version 2>&1',
   'fastp'         => 'fastp --version 2>&1',
   'flye'          => 'flye --version 2>&1',
   'kmc'           => 'kmc -h 2>&1 | grep KMC',
@@ -111,8 +112,9 @@ my(@Options, $version,
     $outdir, $prefix, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
     $kmers, $gsize, $READS, $assembler, $opts, $nanohq, $ram,
     $depth, $model, $list_models, $racon, $medaka, $medaka_opts,
-    $R1, $R2, $pilon, $polypolish, $nofilter, $trim, $trimopts,
-    $nopolish, $minreadlen, $minquality, $minlen, $mincov, $seed);
+    $R1, $R2, $pilon, $polypolish, $noreorient, $dnaapler_mode,
+    $dnaapler_opts, $nofilter, $trim, $trimopts, $nopolish,
+    $minreadlen, $minquality, $minlen, $mincov, $seed);
 setOptions();
 
 # Say hello
@@ -488,6 +490,17 @@ for my $id (sort { $len{$b} <=> $len{$a} } keys %{$seq}) {
 msg("Writing final assembly file => '${prefix}.fa'");
 write_fasta("${prefix}.fa", $seq);
 my $delta = sprintf "%+.2f", (100.0*($nbases-$gsize)/$gsize);
+
+
+unless ($noreorient) {
+  msg("Reorienting contigs with dnaapler");
+  make_folder("$asmdir/reorient");
+  run_cmd_with_fail("dnaapler $dnaapler_mode --input ${prefix}.fa --output $asmdir/reorient --threads $cpus --prefix ${prefix} --force $dnaapler_opts 2>&1", "dnaapler");
+}
+else {
+  msg("User supplied --noreorient, so will not reorient contigs.");
+}
+
 msg("Assembly is $nbases, estimated genome size was $gsize ($delta%)");
 msg("It contains $ncontigs (min=$minlen) contigs totalling $nbases bp.");
 msg("Getting more stats now...");
@@ -697,6 +710,21 @@ sub run_cmd {
 }
 
 #----------------------------------------------------------------------
+sub run_cmd_with_fail {
+  my($cmd, $label) = @_;
+
+  if (!defined $label) {
+    $cmd =~ m/^(\S+)/;
+    $label ||= $1;
+  }
+  $label = "[$label] " if defined $label and $label ne '';
+
+  $cmd .= " | sed 's/^/$label/' | tee -a $LOGFILE";
+  msg("Running: $cmd");
+  system("bash -o pipefail -c \"$cmd\"")==0 or msg("Ignoring error running command: $cmd");
+}
+
+#----------------------------------------------------------------------
 sub find_exe {
   my($bin) = shift;
   for my $dir (File::Spec->path) {
@@ -724,7 +752,7 @@ sub err {
 #----------------------------------------------------------------------
 sub num_cpus {
   my($num)= qx(getconf _NPROCESSORS_ONLN); # POSIX
-  chomp $num;
+  chomp $num;cd te
   return $num || 1;
 }
 
@@ -891,6 +919,10 @@ sub setOptions {
     {OPT=>"pilon=i",      VAR=>\$pilon,     DEFAULT=>0,    DESC=>"Number of polishing rounds to conduct with Pilon (requires --R1 and --R2)"},
     {OPT=>"R1=s",         VAR=>\$R1,        DEFAULT=>'',   DESC=>"Read 1 FASTQ to use for polishing"},
     {OPT=>"R2=s",         VAR=>\$R2,        DEFAULT=>'',   DESC=>"Read 2 FASTQ to use for polishing"},
+    "REORIENT",
+    {OPT=>"noreorient!",     VAR=>\$noreorient,   DEFAULT=>0,   DESC=>"Disable contig reorientation using dnaapler"},
+    {OPT=>"dnaapler_mode=s", VAR=>\$dnaapler_mode, DEFAULT=>'all', DESC=>"The mode of reorientation to execute"},
+    {OPT=>"dnaapler_opts=s", VAR=>\$dnaapler_opts, DEFAULT=>'',    DESC=>"Extra dnaapler options in quotes eg. '--evalue 1e-5'"},
     "MODULES",
     {OPT=>"trim!",      VAR=>\$trim,      DEFAULT=>0,    DESC=>"Enable adaptor trimming"},
     {OPT=>"trimopts=s", VAR=>\$trimopts,  DEFAULT=>'',   DESC=>"Extra porechop options in quotes eg. '--adapter_threshold 80'"},
