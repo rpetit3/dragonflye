@@ -39,6 +39,7 @@
 #   --list_models   List the models available to Medaka (default: OFF)
 # SHORT-READ POLISHER
 #   --polypolish N  Number of polishing rounds to conduct with Polypolish (requires --R1 and --R2) (default: 1)
+#   --polypolish_careful Polypolish will ignore any reads with multiple alignments (default: OFF)
 #   --pilon N       Number of polishing rounds to conduct with Pilon (requires --R1 and --R2) (default: 0)
 #   --R1 XXX        Read 1 FASTQ to use for polishing (default: '')
 #   --R2 XXX        Read 2 FASTQ to use for polishing (default: '')
@@ -116,9 +117,9 @@ my(@Options, $version,
     $outdir, $prefix, $force, $cpus, $tmpdir, $keepfiles, $namefmt,
     $kmers, $gsize, $READS, $assembler, $opts, $nanohq, $ram,
     $depth, $model, $list_models, $racon, $medaka, $medaka_opts,
-    $R1, $R2, $pilon, $polypolish, $noreorient, $dnaapler_mode,
-    $dnaapler_opts, $nofilter, $trim, $trimopts, $nopolish,
-    $minreadlen, $minquality, $minlen, $mincov, $seed);
+    $R1, $R2, $pilon, $polypolish, $polypolish_careful, $noreorient,
+    $dnaapler_mode, $dnaapler_opts, $nofilter, $trim, $trimopts,
+    $nopolish, $minreadlen, $minquality, $minlen, $mincov, $seed);
 setOptions();
 
 # Say hello
@@ -398,6 +399,7 @@ unless ($nopolish) {
         make_folder("$asmdir/polish/short_reads/polypolish");
         my $polypolish_dir = "$asmdir/polish/short_reads/polypolish";
         my $sort_ram = int($half_ram * 1024 / $sort_cpus); # RAM per thread, in Mb
+        my $careful_mode = $polypolish_careful ? "--careful" : "";
 
         msg("Polishing with Polypolish ($polypolish rounds)");
         for (my $i = 1; $i <= $polypolish; $i++) {
@@ -411,7 +413,7 @@ unless ($nopolish) {
             run_cmd("bwa mem -t $cpus -a $POLISHED_FASTA $polish_dir/R1.fq.gz > $SAM_R1", "short read polishing - bwa-mem R1 ($i of $polypolish)");
             run_cmd("bwa mem -t $cpus -a $POLISHED_FASTA $polish_dir/R2.fq.gz > $SAM_R2", "short read polishing - bwa-mem R2 ($i of $polypolish)");
             msg("Polishing with Polypolish");
-            run_cmd("polypolish $POLISHED_FASTA $SAM_R1 $SAM_R2 > $round_dir/polypolish-$i.fasta", "short read polishing - polypolish ($i of $polypolish)");
+            run_cmd("polypolish polish $careful_mode $POLISHED_FASTA $SAM_R1 $SAM_R2 > $round_dir/polypolish-$i.fasta", "short read polishing - polypolish ($i of $polypolish)");
             $POLISHED_FASTA = "$round_dir/polypolish-$i.fasta";
         }
         $has_polished = 1;
@@ -942,7 +944,8 @@ sub setOptions {
     {OPT=>"model=s",      VAR=>\$model,       DEFAULT=>'',   DESC=>"The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used)"},
     {OPT=>"list_models!", VAR=>\$list_models, DEFAULT=>0,    DESC=>"List the models available to Medaka"},
     "SHORT-READ POLISHER",
-    {OPT=>"polypolish=i", VAR=>\$polypolish,     DEFAULT=>1,    DESC=>"Number of polishing rounds to conduct with Polypolish (requires --R1 and --R2)"},
+    {OPT=>"polypolish=i", VAR=>\$polypolish,  DEFAULT=>1,    DESC=>"Number of polishing rounds to conduct with Polypolish (requires --R1 and --R2)"},
+    {OPT=>"polypolish_careful!", VAR=>\$polypolish_careful, DEFAULT=>0, DESC=>"Polypolish will ignore any reads with multiple alignments"},
     {OPT=>"pilon=i",      VAR=>\$pilon,     DEFAULT=>0,    DESC=>"Number of polishing rounds to conduct with Pilon (requires --R1 and --R2)"},
     {OPT=>"R1=s",         VAR=>\$R1,        DEFAULT=>'',   DESC=>"Read 1 FASTQ to use for polishing"},
     {OPT=>"R2=s",         VAR=>\$R2,        DEFAULT=>'',   DESC=>"Read 2 FASTQ to use for polishing"},

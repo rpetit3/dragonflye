@@ -1,8 +1,9 @@
 # Changelog
 
-## v1.2.0 rpetit3/dragonflye "" - 2023/11/??
+## v1.2.0 rpetit3/dragonflye "" - 2024/03/??
 
 * add contig reorientation using dnaapler
+* add careful more for Polypolish
 
 ## v1.1.2 rpetit3/dragonflye "Eastern amberwing" - 2023/10/23
 
