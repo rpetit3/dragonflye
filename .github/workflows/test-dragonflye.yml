@@ -102,7 +102,7 @@ jobs:
 
       - name: Test Raven Assembler + Racon & Pilon Polish
         run: |
-          echo "Testing Raven Assembler + Racon & Pilon Polish
+          echo "Testing Raven Assembler + Racon & Pilon Polish"
           bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --R1 bactopia-tests/data/species/portiera/illumina/SRR2838702_R1.fastq.gz --R2 bactopia-tests/data/species/portiera/illumina/SRR2838702_R2.fastq.gz --cpus 0 --outdir tests/raven-pilon --gsize 300000 --assembler raven --polypolish 0 --pilon 1
 
       - name: Test Miniasm Assembler
