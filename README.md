@@ -11,32 +11,38 @@ _**NOTE: This is under active development, any feedback will be very useful**_
 
 ## A Quick Note
 
-If you've worked with bacterial sequences, in all likelihood you have used one of Torsten Seemann's
-[tools](https://github.com/tseemann?tab=repositories). One such tool is [Shovill](https://github.com/tseemann/shovill),
-which takes the bacterial genome assembly process and makes it quick and painless. Shovill was developed for
-paired-end Illumina reads, and there is a fork, [shovill-se](https://github.com/rpetit3/shovill), which supports
-single-end reads.
+If you've worked with bacterial sequences, in all likelihood you have used one of
+Torsten Seemann's [tools](https://github.com/tseemann?tab=repositories). One such tool
+is [Shovill](https://github.com/tseemann/shovill), which takes the bacterial genome assembly
+process and makes it quick and painless. Shovill was developed for paired-end Illumina reads,
+and there is a fork, [shovill-se](https://github.com/rpetit3/shovill), which supports single-end
+reads.
 
-Given the widespread usage of Shovill, and Torsten basically laying much of the groundwork, I decided to use Shovill
-as a framework for Dragonflye. Dragonflye can be considered a fork of Shovill that supports assembling Oxford Nanopore
-sequences. By going this route users *will not* have to relearn parameters, and will already be familiar with the outputs.
+Given the widespread usage of Shovill, and Torsten basically laying much of the groundwork,
+I decided to use Shovill as a framework for Dragonflye. Dragonflye can be considered a fork
+of Shovill that supports assembling Oxford Nanopore sequences. By going this route users
+*will not* have to relearn parameters, and will already be familiar with the outputs.
 
-At this point, you might be wondering: *so Robert you just hacked Shovill to work with ONT reads, why not just call it 'shovill-ont'?*
+At this point, you might be wondering: *so Robert you just hacked Shovill to work with ONT
+reads, why not just call it 'shovill-ont'?*
 
-That's because when I asked if there was interest in a "Shovill" for ONT reads, Curtis Kapsak (@kapsakcj) responded:
+That's because when I asked if there was interest in a "Shovill" for ONT reads,
+Curtis Kapsak (@kapsakcj) responded:
 
 > Curtis Kapsak (@kapsakcj): if wrapping `flye` , perhaps call it `dragonflye` (a very fast flye)?.
 
-And, honestly how could I not go with that?!? It's an amazing play-on-words that I'm willing to bet Torsten would be proud of it!
+And, honestly how could I not go with that?!? It's an amazing play-on-words that I'm willing
+to bet Torsten would be proud of it!
 
 So to sum it up, thank you Torsten for Shovill and providing a framework for Dragonflye.
 
 ## Introduction
 
-Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quick and easy. Still working on the
-*quick* part, but I think the *easy* part is there. Dragonflye currently supports [Flye](https://github.com/fenderglass/Flye),
-[Miniasm](https://github.com/lh3/miniasm) and [Raven](https://github.com/lbcb-sci/raven) assemblers, and
-[Racon](https://github.com/isovic/racon) and [Medaka](https://github.com/nanoporetech/medaka) polishers.
+Dragonflye is a pipeline that aims to make assembling Oxford Nanopore reads quick and easy.
+Still working on the *quick* part, but I think the *easy* part is there. Dragonflye currently
+supports [Flye](https://github.com/fenderglass/Flye), [Miniasm](https://github.com/lh3/miniasm)
+and [Raven](https://github.com/lbcb-sci/raven) assemblers, and [Racon](https://github.com/isovic/racon)
+and [Medaka](https://github.com/nanoporetech/medaka) polishers.
 
 ## Main Steps
 
@@ -134,6 +140,7 @@ POLISHER
   --list_models   List the models available to Medaka (default: OFF)
 SHORT-READ POLISHER
   --polypolish N  Number of polishing rounds to conduct with Polypolish (requires --R1 and --R2) (default: 1)
+  --polypolish_careful Polypolish will ignore any reads with multiple alignments (default: OFF)
   --pilon N       Number of polishing rounds to conduct with Pilon (requires --R1 and --R2) (default: 0)
   --R1 XXX        Read 1 FASTQ to use for polishing (default: '')
   --R2 XXX        Read 2 FASTQ to use for polishing (default: '')
@@ -206,8 +213,9 @@ This will list all basecaller models that are avialable in Medaka.
 
 ### --polypolish & --pilon & --R1 & --R2
 
-If Illumina short-reads are provided, polishing will be done with Polypolish and/or Pilon. The value of `--polypolish` (Default 1) is the number
-of polishing rounds that will be conducted. By default Pilon is turned off.
+If Illumina short-reads are provided, polishing will be done with Polypolish and/or Pilon. The
+value of `--polypolish` (Default 1) is the number of polishing rounds that will be conducted.
+By default Pilon is turned off.
 
 ### Choosing which stages to use
 
@@ -220,7 +228,8 @@ Adapter Trimming | `--trim` | _default_
 
 ### Environment variables recognised
 
-These env-vars will be used as defaults instead of the built-in defaults. You can use the normal command line option to override them still.
+These env-vars will be used as defaults instead of the built-in defaults. You can use the normal
+command line option to override them still.
 
 Variable | Option | Default
 ---------|--------|------------
@@ -247,27 +256,35 @@ Filename | Description
 
 * _Perl?!?! Perl?!? Really, why Perl?_
 
-  Dragonflye is a fok of Shovill, and Shovill was written in Perl. Haha so yeah, instead of writing from scratch, I dusted off the old Perl skills. Upon which the Perl interpretor basically told me I sucked at Perl every time I tried to make a change (haha kept forgetting the semi-colons at the end of the line!).
+  Dragonflye is a fok of Shovill, and Shovill was written in Perl. Haha so yeah, instead of
+  writing from scratch, I dusted off the old Perl skills. Upon which the Perl interpretor
+  basically told me I sucked at Perl every time I tried to make a change (haha kept forgetting
+  the semi-colons at the end of the line!).
 
 * _Does `dragonflye` accept Illumina reads?_
 
-  It does, only if you would like to use them for short-read polishing. Otherwise, if you want to assemble just Illumina reads, use [Shovill](https://github.com/tseemann/shovill).
+  It does, only if you would like to use them for short-read polishing. Otherwise, if you want
+  to assemble just Illumina reads, use [Shovill](https://github.com/tseemann/shovill).
 
 * _Doesn't Trycycler already do this?_
 
-  Dragonflye is not trying to replicate [Trycycler](https://github.com/rrwick/Trycycler), Trycycler is on a whole 'nother level. If you are looking to
-  get super high quality assemblies with some manual inspection steps in between, use Trycycler. But, if you are looking to just get a quick assembly
-  that you can work with, that's what Dragonfly is for.
+  Dragonflye is not trying to replicate [Trycycler](https://github.com/rrwick/Trycycler),
+  Trycycler is on a whole 'nother level. If you are looking to get super high quality
+  assemblies with some manual inspection steps in between, use Trycycler. But, if you are
+  looking to just get a quick assembly that you can work with, that's what Dragonfly is for.
 
 * _Can I assemble more than one genome at a time?_
 
-  If you would like to assemble more than one genome using Dragonflye, I would recommend you do this with [Bactopia](https://bactopia.github.io/). Bactopia
-  will allow you to process a single genome or thousands, and it also includes many other bacterial genome analyses.
+  If you would like to assemble more than one genome using Dragonflye, I would recommend you
+  do this with [Bactopia](https://bactopia.github.io/). Bactopia will allow you to process a
+  single genome or thousands, and it also includes many other bacterial genome analyses. If you
+  don't want to use Bactopia, I suggest you see the next question!
 
 * _Are there other similar pipelines?_
 
-  [hybracter](https://github.com/gbouras13/hybracter) is a similar alternative to Dragonflye. It is written in Snakemake and includes
-  many of the same analyses, with some fun additions by @gbouras13.
+  [hybracter](https://github.com/gbouras13/hybracter) is a similar alternative to Dragonflye.
+  It is written in Snakemake and includes many of the same analyses, with many fun additions
+  by @gbouras13. 
 
 ## Feedback
 
@@ -275,7 +292,8 @@ Please file questions, bugs or ideas to the [Issue Tracker](https://github.com/r
 
 ## Acknowledgements
 
-I would like to personally extend my many thanks and gratitude to the authors of these software packages. Really, thank you very much!
+I would like to personally extend my many thanks and gratitude to the authors of these software
+packages. Really, thank you very much!
 
 ### Software Included (19)
 
@@ -368,3 +386,9 @@ _Li, H [Seqtk: Toolkit for processing sequences in FASTA/Q formats](https://gith
 * Robert A. Petit III
 * Web: [https://www.robertpetit.com](https://www.robertpetit.com)
 * Twitter: [@rpetit3](https://twitter.com/rpetit3)
+
+## Funding
+
+Support for this project came from the [Wyoming Public Health Laboratory](https://health.wyo.gov/publichealth/).
+
+![WPHL](assets/wyphd-banner.jpg)
