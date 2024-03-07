@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.2.0 rpetit3/dragonflye "" - 2024/03/??
+## v1.2.0 rpetit3/dragonflye "Subartic darner" - 2024/03/07
 
 * add contig reorientation using dnaapler
 * add careful more for Polypolish
