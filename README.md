@@ -339,7 +339,7 @@ _Li, H [Minimap2: pairwise alignment for nucleotide sequences.](https://doi.org/
 
 * __[Nanoq](https://github.com/esteinig/nanoq)__  
 Minimal but speedy quality control for nanopore reads in Rus  
-_Steinig, E [Nanoq: Minimal but speedy quality control for nanopore reads in Rus](https://github.com/esteinig/nanoq)_  
+_Steinig, E, Coin, L, [Nanoq: ultra-fast quality control for nanopore reads.](https://doi.org/10.21105/joss.02991) Journal of Open Source Software, 7(69), 2991 (2022)_ 
 
 * __[Pigz](https://zlib.net/pigz/)__  
 A parallel implementation of gzip for modern multi-processor, multi-core machines.  
