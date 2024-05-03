@@ -45,6 +45,11 @@ jobs:
           bin/dragonflye --version
           bin/dragonflye --help
 
+      - name: Test available medaka models
+        run: |
+            echo "Listing available models"
+            bin/dragonflye --list_models
+
       - name: Test Raven Assembler (quality filtered)
         run: |
           echo "Test Raven Assembler (quality filtered)"
