@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.1 rpetit3/dragonflye "Southern hawker" - 2024/05/02
+
+* correct syntax for >v1 of rasusa
+
 ## v1.2.0 rpetit3/dragonflye "Subartic darner" - 2024/03/24
 
 * add contig reorientation using dnaapler

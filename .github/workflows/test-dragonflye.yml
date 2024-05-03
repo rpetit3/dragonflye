@@ -65,7 +65,7 @@ jobs:
           echo "Test Raven Assembler (quality filtered, no length filter)"
           bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --cpus 0 --nopolish --outdir tests/raven-minquality-nominreadlen-trimopts --gsize 300000 --assembler raven --minquality 6 --minreadlen 0 --trim --trimopts '--adapter_threshold 95'
 
-      - name: Test Raven Assembler
+      - name: Test Raven Assembler + Rasusa Depth Filter
         run: |
           echo "Testing Raven Assembler"
           bin/dragonflye --reads bactopia-tests/data/species/portiera/nanopore/ERR3772599.fastq.gz --prefix ERR3772599-raven --cpus 0 --nopolish --depth 5 --outdir tests/raven --gsize 300000 --assembler raven
