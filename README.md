@@ -284,7 +284,8 @@ Filename | Description
 
   [hybracter](https://github.com/gbouras13/hybracter) is a similar alternative to Dragonflye.
   It is written in Snakemake and includes many of the same analyses, with many fun additions
-  by @gbouras13. 
+  by @gbouras13. Another alternative is [bacass](https://github.com/nf-core/bacass/) which is
+  a Nextflow pipeline maintained by [nf-core](https://nf-co.re/).
 
 ## Feedback
 

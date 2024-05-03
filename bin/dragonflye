@@ -68,7 +68,7 @@ use POSIX qw(strftime);
 
 # Globals
 my $EXE = basename($PROGRAM_NAME);
-my $VERSION = "1.2.0";
+my $VERSION = "1.2.1";
 my $AUTHOR = "Robert A Petit III";
 my $URL = "https://github.com/rpetit3/dragonflye";
 my $APPDIR = abs_path( "$FindBin::RealBin/.." );
@@ -249,7 +249,7 @@ else {
 if ($depth and $depth > 0 and $orig_depth > 1.1 * $depth) {
   my $factor = sprintf "%.3f", $depth / $orig_depth;
   msg("Subsampling reads from ${orig_depth}x to ${depth}x");
-  run_cmd("rasusa -i \Q$READS\E -c $depth -g $gsize -s $seed  2>&1 1> READS.sub.fq", "rasusa");
+  run_cmd("rasusa reads -c $depth -g $gsize -s $seed \Q$READS\E 2>&1 1> READS.sub.fq", "rasusa");
   run_cmd("pigz -f -p $cpus --fast READS.sub.fq 2>&1", "pigz");
   $READS = "READS.sub.fq.gz";
 }
