@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "dragonflye"
+version = "2.0.0"
+description = "Assemble bacterial isolate genomes from Nanopore reads"
+authors = [
+    "Robert A. Petit III <robbie.petit@gmail.com>",
+]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/rpetit3/dragonflye"
+repository = "https://github.com/rpetit3/dragonflye"
+keywords = ["bioinformatics", "bacteria", "assembly", "nanopore"]
+
+[tool.poetry.scripts]
+dragonflye = "dragonflye.cli.dragonflye:main"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+subprocess-tee = "^0.4.2"
+rich = "^13.7.1"
+rich-click = "^1.7.4"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.0.0"
+isort = "^5.13.2"
+black = "^24.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

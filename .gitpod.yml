@@ -1,14 +1,20 @@
-image: condaforge/mambaforge:23.1.0-1
+image: condaforge/miniforge3:24.3.0-0
 
 tasks:
   - name: Initialize
     init: |
-      pip install graphviz
       . /opt/conda/etc/profile.d/conda.sh
       conda activate base
-      mamba create -n dragonflye-dev -y -q -c conda-forge -c bioconda dragonflye
-      conda activate dragonflye-dev
-      git checkout main
+      sleep 5
+      mamba env create --name dragonflye --file /workspace/dragonflye/environment.yml
+      conda activate dragonflye
+      mamba install -y -c conda-forge -c bioconda just pre-commit
+      mkdir -p .vscode
+      echo '{"python.pythonPath": "/home/gitpod/.conda/envs/dragonflye/bin/python"}' > .vscode/settings.json
+      pre-commit install --install-hooks
+      just install
+    command: |
+
 vscode:
   extensions: # based on nf-core.nf-core-extensionpack
     - codezombiech.gitignore                 # Language support for .gitignore files

@@ -1,0 +1,27 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - poetry
+  - python >=3.9
+  # Dragonflye below
+  - assembly-scan >=1.0.0
+  - any2fasta >=0.4.2
+  - bwa
+  - dnaapler
+  - fastp
+  - flye >=2.9.2
+  - kmc >=3.1
+  - medaka >=1.11.0
+  - miniasm >=0.3_r179
+  - nanoq >=0.10.0
+  - pigz >=2.6
+  - pilon
+  - polypolish >=0.6.0
+  - porechop
+  - racon >=1.5.0
+  - rasusa >=1.0.0
+  - raven-assembler >=1.8.3
+  - samclip
+  - samtools
+  - seqtk >=1.4
