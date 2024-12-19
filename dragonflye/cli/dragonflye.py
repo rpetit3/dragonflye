@@ -1,62 +1,3 @@
-"""
-#!/usr/bin/env perl
-# Dragonflye - A very fast flye!
-# SYNOPSIS
-#   De novo assembly pipeline for bacterial isolates with Nanopore reads
-# USAGE
-#   dragonflye [options] --outdir DIR --reads READS.fastq.gz
-# GENERAL
-#   --help          This help
-#   --version       Print version and exit
-#   --check         Check dependencies are installed
-#   --seed N        Random seed to use (default: 42)
-# INPUT
-#   --reads XXX     Input Nanopore FASTQ (default: '')
-#   --depth N       Sub-sample --reads to this depth. Disable with --depth 0 (default: 150)
-#   --minreadlen N  Minimum read length. Disable with --minreadlength 0 (default: 1000)
-#   --minquality N  Minimum average sequence quality. (default: OFF)
-#   --gsize XXX     Estimated genome size eg. 3.2M <blank=AUTODETECT> (default: '')
-# OUTPUT
-#   --outdir XXX    Output folder (default: '')
-#   --prefix XXX    Prefix to use for final assembly FASTA (default: contigs)
-#   --force         Force overwite of existing output folder (default: OFF)
-#   --minlen N      Minimum contig length <0=AUTO> (default: 500)
-#   --mincov n.nn   Minimum contig coverage <0=AUTO> (default: 2)
-#   --namefmt XXX   Format of contig FASTA IDs in 'printf' style (default: 'contig%05d')
-#   --keepfiles     Keep intermediate files (default: OFF)
-# RESOURCES
-#   --tmpdir XXX    Fast temporary directory (default: '')
-#   --cpus N        Number of CPUs to use (0=ALL) (default: 8)
-#   --ram n.nn      Try to keep RAM usage below this many GB, for java programs this the maximum (default: 16)
-# ASSEMBLER
-#   --assembler XXX Assembler: miniasm flye raven (default: 'flye')
-#   --opts XXX      Extra assembler options in quotes eg. flye: '--interations' (default: '')
-#   --nanohq        For Flye, use '--nano-hq' instead of --nano-raw (default: OFF)
-# POLISHER
-#   --racon N       Number of polishing rounds to conduct with Racon (default: 1)
-#   --medaka N      Number of polishing rounds to conduct with Medaka (requires --model) (default: 0)
-#   --medaka_opts XXX Extra Medaka options in quotes eg. '-b 100' (default: '')
-#   --model XXX     The model to be used by Medaka, (Assumes 1 polishing round, if --medaka not used) (default: '')
-#   --list_models   List the models available to Medaka (default: OFF)
-# SHORT-READ POLISHER
-#   --polypolish N  Number of polishing rounds to conduct with Polypolish (requires --R1 and --R2) (default: 1)
-#   --polypolish_careful Polypolish will ignore any reads with multiple alignments (default: OFF)
-#   --pilon N       Number of polishing rounds to conduct with Pilon (requires --R1 and --R2) (default: 0)
-#   --R1 XXX        Read 1 FASTQ to use for polishing (default: '')
-#   --R2 XXX        Read 2 FASTQ to use for polishing (default: '')
-# REORIENT
-#   --noreorient    Disable contig reorientation using dnaapler (default: OFF)
-#   --dnaapler_mode XXX The mode of reorientation to execute (default: 'all')
-#   --dnaapler_opts XXX Extra dnaapler options in quotes eg. '--evalue 1e-5' (default: '')
-# MODULES
-#   --trim          Enable adaptor trimming (default: OFF)
-#   --trimopts XXX  Extra porechop options in quotes eg. '--adapter_threshold 80' (default: '')
-#   --nofilter      Disable read length filtering (default: OFF)
-#   --nopolish      Disable assembly polishing (default: OFF)
-# HOMEPAGE
-#  https://github.com/rpetit3/dragonflye - Robert A Petit III
-"""
-import logging
 import sys
 from pathlib import Path
 
@@ -68,6 +9,8 @@ from rich import print
 from rich.logging import RichHandler
 
 import dragonflye
+from dragonflye.tools.assemblyscan import AssemblyScan
+from dragonflye.logging import Logger, get_logger
 
 # Set up Rich
 stderr = rich.console.Console(stderr=True)
@@ -148,6 +91,15 @@ click.rich_click.OPTION_GROUPS = {
                 "--trimopts",
                 "--nofilter",
                 "--nopolish",
+            ],
+        },
+        {
+            "name": "Logging Options",
+            "options": [
+                "--silent",
+                "--verbose",
+                "--show_time",
+                "--show_level",
             ],
         },
         {
@@ -349,6 +301,10 @@ click.rich_click.OPTION_GROUPS = {
     is_flag=True,
     help="Disable assembly polishing",
 )
+@click.option("--silent", is_flag=True, help="Silence output")
+@click.option("--verbose", is_flag=True, help="Verbose output")
+@click.option("--show_time", is_flag=True, help="Show time in logs")
+@click.option("--show_level", is_flag=True, help="Show log level in logs")
 @click.option("--version", is_flag=True, help="Print version and exit")
 @click.option("--check", is_flag=True, help="Check dependencies are installed")
 @click.option("--seed", default=42, type=int, help="Random seed to use (default: 42)")
@@ -388,12 +344,26 @@ def dragonflye(
     trimopts,
     nofilter,
     nopolish,
+    silent,
+    verbose,
+    show_time,
+    show_level,
     version,
     check,
     seed,
 ):
     """Dragonflye - A very fast flye!"""
-    print("Dragonflye - A very fast flye!")
+    # Setup logs
+    log = Logger(
+        "dragonflye",
+        silent=silent,
+        verbose=verbose,
+        show_time=show_time,
+        show_level=show_level,
+    )
+    log.info("Dragonflye - A very fast flye!")
+    a = AssemblyScan()
+    a.version()
 
 
 def main():
