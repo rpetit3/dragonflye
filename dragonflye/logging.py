@@ -22,7 +22,14 @@ def get_logger(name: str) -> logging.Logger:
 
 class Logger(logging.Logger):
 
-    def __init__(self, name: str, silent: bool, verbose: bool, show_time: bool = False, show_level: bool = False):
+    def __init__(
+        self,
+        name: str,
+        silent: bool,
+        verbose: bool,
+        show_time: bool = False,
+        show_level: bool = False,
+    ):
         """
         Initialize the logger.
 
@@ -36,14 +43,19 @@ class Logger(logging.Logger):
         Returns:
             None
         """
-        super().__init__(name, logging.ERROR if silent else logging.DEBUG if verbose else logging.INFO)
-        self.addHandler(RichHandler(
-            rich_tracebacks=True,
-            console=rich.console.Console(stderr=True),
-            show_time=True if verbose else show_time,
-            show_level=True if verbose else show_level,
-        ))
-
+        super().__init__(
+            name,
+            logging.ERROR if silent else logging.DEBUG if verbose else logging.INFO,
+        )
+        self.addHandler(
+            RichHandler(
+                rich_tracebacks=True,
+                console=rich.console.Console(stderr=True),
+                show_time=True if verbose else show_time,
+                show_level=True if verbose else show_level,
+                show_path=False,
+            )
+        )
 
     def info(self, msg, *args, **kwargs):
         super().info(f"[{self.name}] {msg}")

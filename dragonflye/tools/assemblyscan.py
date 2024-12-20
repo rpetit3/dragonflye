@@ -6,26 +6,26 @@ import rich.console
 from rich.logging import RichHandler
 
 from dragonflye.logging import Logger
-from dragonflye.utils import execute
+from dragonflye.utils import execute, parse_version
 
 
 class AssemblyScan(object):
 
-    def __init__(self):
+    def __init__(self, silent=False, verbose=False, show_time=False, show_level=False):
         self.programs = {
             "assembly-scan": {
                 "path": None,
                 "version": None,
-                # "version_cmd": "echo $(assembly-scan --version 2>&1) | sed 's/assembly-scan //;s/ .*//'",
-                "version_cmd": ["assembly-scan", "--version"],
+                "version_cmd": "assembly-scan --version 2>&1",
+                "version_regex": r"^.*assembly-scan (.*)$",
             }
         }
         self.log = Logger(
             "assembly-scan",
-            silent=False,
-            verbose=True,
-            show_time=False,
-            show_level=False,
+            silent=silent,
+            verbose=verbose,
+            show_time=show_time,
+            show_level=show_level,
         )
 
     def check(self) -> bool:
@@ -43,7 +43,7 @@ class AssemblyScan(object):
                 success = False
             else:
                 logging.debug(f"{program} found: {program_path}")
-                self.programs[program]['path'] = program_path
+                self.programs[program]["path"] = program_path
         return success
 
     def run(self, input: str, output: str, cwd=None):
@@ -67,13 +67,13 @@ class AssemblyScan(object):
         )
 
     def version(self):
-        print(self.log)
         for program, values in self.programs.items():
-            stdout, stderr = execute(
+            e = execute(
                 values["version_cmd"],
-                "assembly-scan",
                 stderr_handler=self.log.error,
-                stdout_handler=self.log.info
+                stdout_handler=self.log.info,
             )
-            self.programs[program]["version"] = stdout
-            logging.info(f"{program} version: {self.programs[program]['version']}")
+            self.programs[program]["version"] = parse_version(
+                e["stdout"][0], values["version_regex"]
+            )
+            self.log.info(f"{program}: {self.programs[program]['version']}")

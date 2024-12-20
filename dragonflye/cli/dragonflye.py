@@ -9,8 +9,9 @@ from rich import print
 from rich.logging import RichHandler
 
 import dragonflye
-from dragonflye.tools.assemblyscan import AssemblyScan
 from dragonflye.logging import Logger, get_logger
+from dragonflye.tools.assemblyscan import AssemblyScan
+from dragonflye.utils import motd, say_hello
 
 # Set up Rich
 stderr = rich.console.Console(stderr=True)
@@ -110,16 +111,14 @@ click.rich_click.OPTION_GROUPS = {
                 "--check",
                 "--seed",
             ],
-        }
+        },
     ]
 }
 
 
 @click.command()
 @click.version_option(dragonflye.__version__, "--version", "-V")
-@click.option(
-    "--reads", default="", type=str, help="Input Nanopore FASTQ"
-)
+@click.option("--reads", default="", type=str, help="Input Nanopore FASTQ")
 @click.option(
     "--depth",
     default=150,
@@ -144,12 +143,7 @@ click.rich_click.OPTION_GROUPS = {
     type=str,
     help="Estimated genome size eg. 3.2M <blank=AUTODETECT>",
 )
-@click.option(
-    "--outdir",
-    default="",
-    type=str,
-    help="Output folder"
-)
+@click.option("--outdir", default="", type=str, help="Output folder")
 @click.option(
     "--prefix",
     default="contigs",
@@ -177,17 +171,11 @@ click.rich_click.OPTION_GROUPS = {
     "--namefmt",
     default="contig%05d",
     type=str,
-    help="Format of contig FASTA IDs in \"printf\" style",
+    help='Format of contig FASTA IDs in "printf" style',
 )
-@click.option(
-    "--keepfiles", is_flag=True, help="Keep intermediate files"
-)
-@click.option(
-    "--tmpdir", default="", type=str, help="Fast temporary directory"
-)
-@click.option(
-    "--cpus", default=8, type=int, help="Number of CPUs to use (0=ALL)"
-)
+@click.option("--keepfiles", is_flag=True, help="Keep intermediate files")
+@click.option("--tmpdir", default="", type=str, help="Fast temporary directory")
+@click.option("--cpus", default=8, type=int, help="Number of CPUs to use (0=ALL)")
 @click.option(
     "--ram",
     default=16.0,
@@ -257,12 +245,8 @@ click.rich_click.OPTION_GROUPS = {
     type=int,
     help="Number of polishing rounds to conduct with Pilon (requires --R1 and --R2)",
 )
-@click.option(
-    "--R1", default="", type=str, help="Read 1 FASTQ to use for polishing"
-)
-@click.option(
-    "--R2", default="", type=str, help="Read 2 FASTQ to use for polishing"
-)
+@click.option("--R1", default="", type=str, help="Read 1 FASTQ to use for polishing")
+@click.option("--R2", default="", type=str, help="Read 2 FASTQ to use for polishing")
 @click.option(
     "--noreorient",
     is_flag=True,
@@ -362,8 +346,12 @@ def dragonflye(
         show_level=show_level,
     )
     log.info("Dragonflye - A very fast flye!")
-    a = AssemblyScan()
+    say_hello(log)
+    a = AssemblyScan(
+        silent=silent, verbose=verbose, show_time=show_time, show_level=show_level
+    )
     a.version()
+    motd(log)
 
 
 def main():

@@ -1,5 +1,3 @@
-
-
 def get_versions(tools: list) -> dict:
     """
     Get the versions of the tools in the list.
@@ -12,5 +10,7 @@ def get_versions(tools: list) -> dict:
     """
     versions = {}
     for tool in tools:
-        versions[tool] = subprocess.check_output([tool, "--version"]).decode("utf-8").strip()
+        versions[tool] = (
+            subprocess.check_output([tool, "--version"]).decode("utf-8").strip()
+        )
     return versions
