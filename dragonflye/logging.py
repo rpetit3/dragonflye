@@ -54,20 +54,21 @@ class Logger(logging.Logger):
                 show_time=True if verbose else show_time,
                 show_level=True if verbose else show_level,
                 show_path=False,
+                markup=True,
             )
         )
 
     def info(self, msg, *args, **kwargs):
-        super().info(f"[{self.name}] {msg}")
+        super().info(f"\\[{self.name}] {msg}")
 
     def debug(self, msg, *args, **kwargs):
-        super().debug(f"[{self.name}] {msg}")
+        super().debug(f"\\[{self.name}] {msg}")
 
     def error(self, msg, *args, **kwargs):
-        super().error(f"[{self.name}] {msg}")
+        super().error(f"[red]\\[{self.name}] {msg}[/]")
 
     def warning(self, msg, *args, **kwargs):
-        super().warning(f"[{self.name}] {msg}")
+        super().warning(f"\\[{self.name}] {msg}")
 
     def critical(self, msg, *args, **kwargs):
-        super().critical(f"[{self.name}] {msg}")
+        super().critical(f"\\[{self.name}] {msg}")

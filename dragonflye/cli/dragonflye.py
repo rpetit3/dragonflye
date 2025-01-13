@@ -1,17 +1,16 @@
 import sys
-from pathlib import Path
 
 import rich
 import rich.console
 import rich.traceback
 import rich_click as click
-from rich import print
-from rich.logging import RichHandler
 
 import dragonflye
-from dragonflye.logging import Logger, get_logger
+from dragonflye.logging import Logger
 from dragonflye.tools.assemblyscan import AssemblyScan
-from dragonflye.utils import motd, say_hello
+from dragonflye.tools.kmc import KMC
+from dragonflye.tools.seqtk import SeqTK
+from dragonflye.utils import file_exists, mkdir, motd, say_hello, write_versions
 
 # Set up Rich
 stderr = rich.console.Console(stderr=True)
@@ -20,9 +19,14 @@ click.rich_click.USE_RICH_MARKUP = True
 click.rich_click.OPTION_GROUPS = {
     "dragonflye": [
         {
-            "name": "Input Options",
+            "name": "Required Options",
             "options": [
                 "--reads",
+            ],
+        },
+        {
+            "name": "QC Options",
+            "options": [
                 "--depth",
                 "--minreadlen",
                 "--minquality",
@@ -34,6 +38,7 @@ click.rich_click.OPTION_GROUPS = {
             "options": [
                 "--outdir",
                 "--prefix",
+                "--nf_versions",
                 "--force",
                 "--minlen",
                 "--mincov",
@@ -117,8 +122,14 @@ click.rich_click.OPTION_GROUPS = {
 
 
 @click.command()
+@click.pass_context
 @click.version_option(dragonflye.__version__, "--version", "-V")
-@click.option("--reads", default="", type=str, help="Input Nanopore FASTQ")
+@click.option(
+    "--reads",
+    type=str,
+    help="Input Nanopore FASTQ",
+    required=True,
+)
 @click.option(
     "--depth",
     default=150,
@@ -143,12 +154,23 @@ click.rich_click.OPTION_GROUPS = {
     type=str,
     help="Estimated genome size eg. 3.2M <blank=AUTODETECT>",
 )
-@click.option("--outdir", default="", type=str, help="Output folder")
+@click.option(
+    "--outdir",
+    default="dragonflye",
+    type=str,
+    help="Output folder",
+)
 @click.option(
     "--prefix",
     default="contigs",
     type=str,
     help="Prefix to use for final assembly FASTA",
+)
+@click.option(
+    "--nf_versions",
+    default="dragonflye",
+    type=str,
+    help="Prefix to use for version files to make compatible with nf-core/modules",
 )
 @click.option(
     "--force",
@@ -293,6 +315,7 @@ click.rich_click.OPTION_GROUPS = {
 @click.option("--check", is_flag=True, help="Check dependencies are installed")
 @click.option("--seed", default=42, type=int, help="Random seed to use (default: 42)")
 def dragonflye(
+    ctx,
     reads,
     depth,
     minreadlen,
@@ -300,6 +323,7 @@ def dragonflye(
     gsize,
     outdir,
     prefix,
+    nf_versions,
     force,
     minlen,
     mincov,
@@ -345,12 +369,66 @@ def dragonflye(
         show_time=show_time,
         show_level=show_level,
     )
+    tool_objs = []
     log.info("Dragonflye - A very fast flye!")
     say_hello(log)
+
+    #for p in ctx.command.params:
+    #    print(f"{p.name}: {p.default}")
+
+    # Verify input and setup output directory
+    log.info("Verifying inputs and output directories")
+    reads = file_exists(reads, log, param="reads")
+    if r1 or r2:
+        if not r1 or not r2:
+            log.error("Whoopsie! --R1 or --R2 have to be used together, please fix it and try again.")
+            log.error("Exiting...")
+            sys.exit(1)
+        r1 = file_exists(r1, log, param="R1")
+        r2 = file_exists(r2, log, param="R2")
+    outdir = mkdir(outdir, force=force, log=log)
+
+    # Gather read stats using seqtk
+    s = SeqTK(
+        silent=silent, verbose=verbose, show_time=show_time, show_level=show_level
+    )
+    tool_objs.append(s)
+    log.info("Collecting raw read statistics with 'seqtk'")
+    seqtk_original = s.run(reads)
+
+    # Estimate genome size if not provided
+    final_gsize = gsize
+    if not gsize:
+        k = KMC(
+            silent=silent, verbose=verbose, show_time=show_time, show_level=show_level
+        )
+        tool_objs.append(k)
+        # msg("Estimating genome size by counting unqiue $kmer-mers > frequency $minkc");
+        kmer = 21
+        minkc = 10
+        log.info(f"Estimating genome size by counting unique {kmer}-mers > frequency {minkc}")
+        log.warning("Genome size estimates may be inaccurate, please consider using '--gsize'")
+        kmc_output = k.run(reads, {"half_ram": int(ram / 2.0), "cpus": cpus, "kmer": kmer, "minkc": minkc, "tmp_dir": tmpdir})
+        final_gsize = kmc_output["gsize"]
+    log.info(f"Using genome size {final_gsize} bp")
+
+
+
+
+
     a = AssemblyScan(
         silent=silent, verbose=verbose, show_time=show_time, show_level=show_level
     )
-    a.version()
+    tool_objs.append(a)
+
+
+    # Get versions of tools utilized
+    log.info("Capturing versions of tools utilized")
+    versions = {}
+    for tool_obj in tool_objs:
+        versions = versions | tool_obj.version()
+    write_versions(versions, f"{outdir}/versions.yml", nf_versions=nf_versions)
+    log.info(f"Versions written to {outdir}/versions.yml")
     motd(log)
 
 

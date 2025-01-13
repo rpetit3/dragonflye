@@ -1,12 +1,5 @@
-import logging
-import shutil
-
-import rich
-import rich.console
-from rich.logging import RichHandler
-
 from dragonflye.logging import Logger
-from dragonflye.utils import execute, parse_version
+from dragonflye.utils import execute, parse_version, which
 
 
 class AssemblyScan(object):
@@ -35,38 +28,42 @@ class AssemblyScan(object):
         Returns:
             bool: True if all tools are available, False otherwise.
         """
-        success = True
+        checks_passed = 0
         for program in self.programs.keys():
-            program_path = shutil.which(program)
-            if program_path is None:
-                logging.error(FileNotFoundError(f"{program} not found in PATH"))
-                success = False
-            else:
-                logging.debug(f"{program} found: {program_path}")
+            success, program_path = which(program)
+            if success:
+                self.log.debug(f"{program} found: {program_path}")
                 self.programs[program]["path"] = program_path
-        return success
+                checks_passed += 1
+        return False if checks_passed != len(self.programs) else True
 
-    def run(self, input: str, output: str, cwd=None):
+    def run(self, input: str, output: str, args: dict = None, cwd: str = None):
         """
-        Run the assembly-scan tool.
+        Run the KMC tool for genome size estimation.
 
         Args:
-            input (str): Input assembly file.
+            input (str): Input FASTQ file.
             output (str): Output file.
-            cwd (_type_, optional): Working directory to execute the command in. Defaults to None.
+            args (dict, optional): Additional arguments to pass to the command. Defaults to None.
+            cwd (str, optional): Working directory to execute the command in. Defaults to None.
 
         Returns:
             _type_: _description_
         """
-
         return execute(
             f"{self.programs['assembly-scan']['path']} {input}",
-            command="assembly-scan",
             cwd=cwd,
             stdout=output,
         )
 
-    def version(self):
+    def version(self) -> dict:
+        """
+        Get the version of the tools.
+
+        Returns:
+            dict: Dictionary of tools and their versions.
+        """
+        versions = {}
         for program, values in self.programs.items():
             e = execute(
                 values["version_cmd"],
@@ -76,4 +73,6 @@ class AssemblyScan(object):
             self.programs[program]["version"] = parse_version(
                 e["stdout"][0], values["version_regex"]
             )
+            versions[program] = self.programs[program]["version"]
             self.log.info(f"{program}: {self.programs[program]['version']}")
+        return versions

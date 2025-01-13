@@ -3,10 +3,13 @@ import platform
 import random
 import re
 import shlex
+import shutil
 import sys
+
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from pathlib import Path
 from subprocess import PIPE, CalledProcessError, CompletedProcess, Popen
 
 import psutil
@@ -23,6 +26,10 @@ def execute(
     text=True,
     stdout=PIPE,
     stderr=PIPE,
+    allow_error=False,
+    redirect_stderr=False,
+    max_lines=None,
+    ignort_truncation=False,
     **kwargs,
 ):
     """
@@ -30,10 +37,13 @@ def execute(
 
     Adapted from:  https://stackoverflow.com/a/76634669
     """
+    # strip/replace/split to allow more readable multiline strings in the classes
+    args = ' '.join(args.strip().replace("\n", " ").split())
     stdout_handler(f"Running: {args}")
     final_args = shlex.split(args) if isinstance(args, str) else args
     final_stdout = []
     final_stderr = []
+    lines_printed = 0
     with (
         Popen(final_args, text=text, stdout=stdout, stderr=stderr, **kwargs) as process,
         ThreadPoolExecutor(
@@ -46,14 +56,26 @@ def execute(
         exhaust_async = partial(
             pool.submit, exhaust
         )  # exhaust non-blocking in a background thread
-        final_stdout = final_stdout + [line.rstrip() for line in process.stdout]
+        for line in process.stdout:
+            this_stdout = line.rstrip()
+            if max_lines:
+                if lines_printed < max_lines:
+                    stdout_handler(this_stdout)
+                    lines_printed += 1
+                else:
+                    if not ignort_truncation:
+                        stdout_handler(f"Output truncated to {max_lines} lines")
+                    break
+            else:
+                stdout_handler(this_stdout)
+            final_stdout.append(this_stdout)
+        exhaust_async(process.stdout)
         final_stderr = final_stderr + [line.rstrip() for line in process.stderr]
-        exhaust_async(stdout_handler(line[:-1]) for line in process.stdout)
         exhaust_async(stderr_handler(line[:-1]) for line in process.stderr)
     retcode = (
         process.poll()
     )  # block until both iterables are exhausted (process finished)
-    if check and retcode:
+    if check and retcode and not allow_error:
         stderr_handler(f"Error running command: '{args}'")
         if len(final_stdout):
             stderr_handler("STDOUT:")
@@ -68,6 +90,29 @@ def execute(
     return {"stdout": final_stdout, "stderr": final_stderr, "returncode": retcode}
 
 
+def file_exists(file: str, log: object, param: str = None) -> bool:
+    """
+    Check if a file exists.
+
+    Args:
+        file (str): Path to the file.
+        log (object): Logger object.
+        param (str, optional): Parameter name. Defaults to None.
+
+    Returns:
+        bool: True if the file exists, False otherwise.
+    """
+    path_obj = Path(file)
+    param_str = f" (--{param})" if param else ""
+    if not path_obj.is_file():
+        log.error(f"Ooops! Unable to find {file}{param_str}. Double check it (typos, wrong location, etc...), and please try again!")
+        log.error("Exiting...")
+        sys.exit(1)
+    else:
+        log.info(f"Found: {str(path_obj.absolute())}")
+    return str(path_obj.absolute())
+
+
 def parse_version(version: str, regex: str) -> str:
     """Parse a version string using a regular expression."""
     match = re.search(regex, version)
@@ -78,28 +123,31 @@ def parse_version(version: str, regex: str) -> str:
     )
 
 
-def say_hello(log):
+def mkdir(path: str, force: bool, log: object) -> str:
     """
-    # Say hello
-    msg("Hello", $ENV{USER} || 'stranger');
-    msg("You ran: @CMDLINE");
-    msg("This is $EXE $VERSION");
-    msg("Written by $AUTHOR");
-    msg("Homepage is $URL");
-    msg("Operating system is $OSNAME");
-    msg("Perl version is $PERL_VERSION");
-    msg("Machine has $CORES CPU cores and $MEMORY GB RAM");
+    Make a directory if it does not exist. Exit with an error if it does and force is False.
+
+    Args:
+        path (str): Path to the directory.
+        force (bool): Overwrite the directory if it exists.
+        log (object): Logger object.
+
+    Returns:
+        str: Path to the directory.
     """
-    log.info(f"Hello, {os.getenv('USER', 'stranger')}")
-    log.info(f"You ran: {' '.join(sys.argv)}")
-    log.info(f"This is {os.path.basename(sys.argv[0])} {dragonflye.__version__}")
-    log.info(f"Written by {dragonflye.__author__}")
-    log.info(f"Homepage is {dragonflye.__url__}")
-    log.info(f"Operating system is {platform.system()} {platform.release()}")
-    log.info(f"Python version is {sys.version}")
-    log.info(
-        f"Machine has {os.cpu_count()} CPU cores and {psutil.virtual_memory().total / 1e9:.2f} GB RAM"
-    )
+    path_obj = Path(path)
+    path_abs = str(path_obj.absolute())
+    if path_obj.exists():
+        if force:
+            log.warning(f"Removing existing directory: {path_abs}")
+            shutil.rmtree(path)
+        else:
+            log.error(f"Ooops! {path} already exists. To overwrite, please use --force.")
+            log.error("Exiting...")
+            sys.exit(1)
+    path_obj.mkdir(parents=True, exist_ok=True)
+    log.info(f"Created output directory: {path_abs}")
+    return path_abs
 
 
 def motd(log):
@@ -165,5 +213,61 @@ def motd(log):
         "Bis bald",  # German (see you soon)
         "La paz",  # Quechua
     ]
-    log.info(random.choice(messages))
-    log.info(f"Done, {random.choice(goodbyes).lower()}")
+    log.info(f"[green]{random.choice(messages)}[/]")
+    log.info("We are done here.")
+    log.info(f"[deep_sky_blue1]{random.choice(goodbyes).lower()}[/]")
+
+
+def say_hello(log):
+    """
+    Print a hello message, with execution and system information.
+
+    Args:
+        log (object): Logger object.
+    """
+    log.info(f"Hello, {os.getenv('USER', 'stranger')}")
+    log.info(f"You ran: {' '.join(sys.argv)}")
+    log.info(f"This is {os.path.basename(sys.argv[0])} {dragonflye.__version__}")
+    log.info(f"Written by {dragonflye.__author__}")
+    log.info(f"Homepage is {dragonflye.__url__}")
+    log.info(f"Operating system is {platform.system()} {platform.release()}")
+    log.info(f"Python version is {sys.version}")
+    log.info(
+        f"Machine has {os.cpu_count()} CPU cores and {psutil.virtual_memory().total / 1e9:.2f} GB RAM"
+    )
+    log.info("[green]Shall we start assembling?[/]")
+
+
+def which(program: str, log: object) -> list:
+    """
+    Mimic the `which` command.
+
+    Args:
+        program (str): Name of the program to search for.
+        log (object): Logger object.
+
+    Returns:
+        list: [success, program_path]
+    """
+    success = True
+    program_path = shutil.which(program)
+    if program_path is None:
+        log.error(FileNotFoundError(f"{program} not found in PATH"))
+        success = False
+    return [success, program_path]
+
+
+def write_versions(versions: dict, path: str, nf_versions: str) -> None:
+    """
+    Write versions of tools to a YAML file.
+
+    Args:
+        versions (dict): Dictionary of tools and their versions.
+        path (str): Path to write the YAML file.
+        nf_versions (str): Path to the Nextflow versions file.
+    """
+    with open(path, "w") as f:
+        f.write(f'"{nf_versions}":\n')
+        for tool, version in versions.items():
+            f.write(f"    {tool}: {version}\n")
+    return None
