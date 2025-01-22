@@ -1,6 +1,6 @@
 from dragonflye.dependencies import Dependency
 from dragonflye.logging import Logger
-from dragonflye.tools.base import BaseTool
+from dragonflye.modules.base import BaseTool
 from dragonflye.utils import execute, parse_version, which
 
 
@@ -27,8 +27,7 @@ class AssemblyScan(BaseTool):
         Dependency(
             name="assembly-scan",
             min_version="1.0.0",
-            version_cmd="assembly-scan --version 2>&1",
-            version_pattern=r"^.*assembly-scan (.*)$",,
+            version_pattern=r"^.*assembly-scan (.*)$",
         )
     ]
 

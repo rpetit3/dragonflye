@@ -7,9 +7,9 @@ import rich_click as click
 
 import dragonflye
 from dragonflye.logging import Logger
-from dragonflye.tools.assemblyscan import AssemblyScan
-from dragonflye.tools.kmc import KMC
-from dragonflye.tools.seqtk import SeqTK
+from dragonflye.modules.assemblyscan import AssemblyScan
+from dragonflye.modules.kmc import KMC
+from dragonflye.modules.seqtk import SeqTK
 from dragonflye.utils import file_exists, mkdir, motd, say_hello, write_versions
 
 # Set up Rich
@@ -133,12 +133,14 @@ click.rich_click.OPTION_GROUPS = {
 @click.option(
     "--depth",
     default=150,
+    show_default=True,
     type=int,
     help="Sub-sample --reads to this depth. Disable with --depth 0",
 )
 @click.option(
     "--minreadlen",
     default=1000,
+    show_default=True,
     type=int,
     help="Minimum read length. Disable with --minreadlength 0",
 )
@@ -157,18 +159,21 @@ click.rich_click.OPTION_GROUPS = {
 @click.option(
     "--outdir",
     default="dragonflye",
+    show_default=True,
     type=str,
     help="Output folder",
 )
 @click.option(
     "--prefix",
     default="contigs",
+    show_default=True,
     type=str,
     help="Prefix to use for final assembly FASTA",
 )
 @click.option(
     "--nf_versions",
     default="dragonflye",
+    show_default=True,
     type=str,
     help="Prefix to use for version files to make compatible with nf-core/modules",
 )
@@ -180,33 +185,44 @@ click.rich_click.OPTION_GROUPS = {
 @click.option(
     "--minlen",
     default=500,
+    show_default=True,
     type=int,
     help="Minimum contig length <0=AUTO>",
 )
 @click.option(
     "--mincov",
-    default=2.0,
-    type=float,
+    default=2,
+    show_default=True,
+    type=int,
     help="Minimum contig coverage <0=AUTO>",
 )
 @click.option(
     "--namefmt",
     default="contig%05d",
+    show_default=True,
     type=str,
     help='Format of contig FASTA IDs in "printf" style',
 )
 @click.option("--keepfiles", is_flag=True, help="Keep intermediate files")
 @click.option("--tmpdir", default="", type=str, help="Fast temporary directory")
-@click.option("--cpus", default=8, type=int, help="Number of CPUs to use (0=ALL)")
+@click.option(
+    "--cpus",
+    default=8, 
+    show_default=True,
+    type=int,
+    help="Number of CPUs to use (0=ALL)"
+)
 @click.option(
     "--ram",
-    default=16.0,
-    type=float,
+    default=16,
+    show_default=True,
+    type=int,
     help="Try to keep RAM usage below this many GB, for java programs this the maximum",
 )
 @click.option(
     "--assembler",
     default="flye",
+    show_default=True,
     type=str,
     help="Assembler: miniasm flye raven",
 )
@@ -224,6 +240,7 @@ click.rich_click.OPTION_GROUPS = {
 @click.option(
     "--racon",
     default=1,
+    show_default=True,
     type=int,
     help="Number of polishing rounds to conduct with Racon",
 )
@@ -231,7 +248,7 @@ click.rich_click.OPTION_GROUPS = {
     "--medaka",
     default=0,
     type=int,
-    help="Number of polishing rounds to conduct with Medaka (requires --model)",
+    help="Number of polishing rounds to conduct with Medaka (requires --model, default: OFF)",
 )
 @click.option(
     "--medaka_opts",
@@ -253,6 +270,7 @@ click.rich_click.OPTION_GROUPS = {
 @click.option(
     "--polypolish",
     default=1,
+    show_default=True,
     type=int,
     help="Number of polishing rounds to conduct with Polypolish (requires --R1 and --R2)",
 )
@@ -277,8 +295,9 @@ click.rich_click.OPTION_GROUPS = {
 @click.option(
     "--dnaapler_mode",
     default="all",
+    show_default=True,
     type=str,
-    help="The mode of reorientation to execute (default: 'all')",
+    help="The mode of reorientation to execute",
 )
 @click.option(
     "--dnaapler_opts",
@@ -313,80 +332,37 @@ click.rich_click.OPTION_GROUPS = {
 @click.option("--show_level", is_flag=True, help="Show log level in logs")
 @click.option("--version", is_flag=True, help="Print version and exit")
 @click.option("--check", is_flag=True, help="Check dependencies are installed")
-@click.option("--seed", default=42, type=int, help="Random seed to use (default: 42)")
-def dragonflye(
-    ctx,
-    reads,
-    depth,
-    minreadlen,
-    minquality,
-    gsize,
-    outdir,
-    prefix,
-    nf_versions,
-    force,
-    minlen,
-    mincov,
-    namefmt,
-    keepfiles,
-    tmpdir,
-    cpus,
-    ram,
-    assembler,
-    opts,
-    nanohq,
-    racon,
-    medaka,
-    medaka_opts,
-    model,
-    list_models,
-    polypolish,
-    polypolish_careful,
-    pilon,
-    r1,
-    r2,
-    noreorient,
-    dnaapler_mode,
-    dnaapler_opts,
-    trim,
-    trimopts,
-    nofilter,
-    nopolish,
-    silent,
-    verbose,
-    show_time,
-    show_level,
-    version,
-    check,
-    seed,
-):
+@click.option("--seed", default=42, show_default=True, type=int, help="Random seed to use ")
+def dragonflye(**kwargs):
     """Dragonflye - A very fast flye!"""
+
     # Setup logs
     log = Logger(
         "dragonflye",
-        silent=silent,
-        verbose=verbose,
-        show_time=show_time,
-        show_level=show_level,
+        silent=kwargs["silent"],
+        verbose=kwargs["verbose"],
+        show_time=kwargs["show_time"],
+        show_level=kwargs["show_level"],
     )
     tool_objs = []
     log.info("Dragonflye - A very fast flye!")
     say_hello(log)
 
-    #for p in ctx.command.params:
-    #    print(f"{p.name}: {p.default}")
-
     # Verify input and setup output directory
     log.info("Verifying inputs and output directories")
     reads = file_exists(reads, log, param="reads")
-    if r1 or r2:
-        if not r1 or not r2:
+    if kwargs["r1"] or kwargs["r2"]:
+        if not kwargs["r1"] or not kwargs["r2"]:
             log.error("Whoopsie! --R1 or --R2 have to be used together, please fix it and try again.")
             log.error("Exiting...")
             sys.exit(1)
-        r1 = file_exists(r1, log, param="R1")
-        r2 = file_exists(r2, log, param="R2")
+        r1 = file_exists(kwargs["r1"], log, param="R1")
+        r2 = file_exists(kwargs["r2"], log, param="R2")
     outdir = mkdir(outdir, force=force, log=log)
+
+    # Determine subworkflows to include
+    subworkflows = []
+
 
     # Gather read stats using seqtk
     s = SeqTK(
